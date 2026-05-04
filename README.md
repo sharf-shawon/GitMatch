@@ -1,164 +1,95 @@
-# GitMatch – Swipe to Discover GitHub Repositories
+# 🚀 GitMatch: Discover Your Next Favorite Repo
 
-Discover your next favorite GitHub repository with a simple swipe.  
-GitMatch turns GitHub repository discovery into a fast, swipe‑first experience so developers can explore open‑source projects without scrolling endless lists.
+[![GitHub stars](https://img.shields.io/github/stars/sharfuddin-shawon/gitmatch?style=for-the-badge&color=orange)](https://github.com/sharfuddin-shawon/gitmatch/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/sharfuddin-shawon/gitmatch?style=for-the-badge&color=blue)](https://github.com/sharfuddin-shawon/gitmatch/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![React 19](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
+[![Tailwind 4](https://img.shields.io/badge/Tailwind-4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-***
+**GitMatch** is a swipe-based discovery tool designed for developers who are tired of endless scrolling and want to find projects that actually matter. Whether you're looking for your next side project, a library to use at work, or an open-source repo to contribute to, GitMatch surfaces the best of GitHub through an intuitive Tinder-like interface.
 
-## Why GitMatch?
+---
 
-Finding good open‑source projects on GitHub is hard: search results are noisy, trending lists reset daily, and it is easy to miss great repos outside your usual bubble. GitMatch gives you a focused, card‑based interface where you see one repository at a time and decide with a quick swipe.
+## ✨ Features
 
-- Swipe **right** to like, star, or save a GitHub repo  
-- Swipe **left** to skip and move on  
-- Each swipe trains a **personalized recommendation feed**  
-- Log in with **GitHub** or **Google** in seconds  
+- **🔥 Swipe-to-Discover:** Quickly filter through thousands of repositories with simple gestures.
+- **🧠 Personalized Feed:** Our recommendation engine learns from your 'Likes' and 'Passes' to surface high-priority projects.
+- **🔐 Secure Authentication:** Seamless login via GitHub and Google.
+- **📂 Stash Collections:** Save your favorite discoveries into custom collections for later.
+- **⚡ High Performance:** Built with **React 19** and **Vite** for near-instant interactions.
+- **🎨 Modern UI:** Fluid animations powered by **Motion (React)** and styled with **Tailwind CSS 4**.
 
-Built for developers, GitMatch is a lightweight GitHub companion that makes it fun and efficient to discover new tools, libraries, starter kits, and learning resources.
+---
 
-***
+## 🛠️ Tech Stack
 
-## Key Features
+- **Framework:** [React 19](https://react.dev/)
+- **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
+- **State & DB:** [Firebase](https://firebase.google.com/) (Firestore & Auth)
+- **Animations:** [Motion](https://motion.dev/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **AI Integration:** [Google Gemini API](https://ai.google.dev/) (for smart tagging and recommendations)
 
-- **Swipe‑based GitHub repo discovery**  
-  Explore repositories through a Tinder‑style, card‑based interface optimized for quick decisions.
+---
 
-- **Personalized recommendations**  
-  GitMatch learns from your swipes, topics, languages, and stars to surface projects that match your interests and tech stack.
-
-- **GitHub & Google sign‑in**  
-  Authenticate with GitHub or Google, securely connect your account, and start swiping in seconds.
-
-- **Open‑source friendly by design**  
-  Discover trending repos, hidden gems, and niche tools you would never see in the default GitHub search experience.
-
-- **Built for developers**  
-  Ideal for finding projects to star, fork, learn from, or contribute to—whether you are a beginner looking for learning material or an experienced dev looking for serious OSS work.
-
-***
-
-## Use Cases
-
-GitMatch is useful if you:
-
-- Want a **daily feed of interesting GitHub repos** instead of manually searching  
-- Are looking for **open‑source projects to contribute to** in your favorite language or framework  
-- Need inspiration for **new side projects**, starter templates, or boilerplates  
-- Curate GitHub stars and want them to actually reflect your interests, not random bookmarks  
-
-***
-
-## Quick Start
-
-> ⚠️ Replace the stack details below with your actual implementation (Next.js, Django, FastAPI, etc.).
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js and npm (or your frontend runtime)  
-- Python / Node / Go (backend, whichever you use)  
-- GitHub OAuth app or GitHub App configured  
-- Google OAuth credentials (optional, if you support Google login)  
+- Node.js (v18+)
+- npm or yarn
 
 ### Installation
 
-```bash
-git clone https://github.com/your-user/GitMatch.git
-cd GitMatch
-# install frontend
-cd frontend && npm install
-# install backend
-cd ../backend && pip install -r requirements.txt
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/sharfuddin-shawon/gitmatch.git
+   cd gitmatch
+   ```
 
-### Configuration
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-1. Create a `.env` file (or equivalent) for the backend with:
+3. **Set up Environment Variables:**
+   Create a `.env` file based on `.env.example`:
+   ```env
+   VITE_FIREBASE_API_KEY=your_key
+   GEMINI_API_KEY=your_key
+   ```
 
-   - `GITHUB_CLIENT_ID`  
-   - `GITHUB_CLIENT_SECRET`  
-   - `GOOGLE_CLIENT_ID` (optional)  
-   - `GOOGLE_CLIENT_SECRET` (optional)  
-   - `JWT_SECRET` or similar session secret  
+4. **Run development server:**
+   ```bash
+   npm run dev
+   ```
 
-2. Configure allowed callback URLs for your GitHub and Google OAuth apps.
+---
 
-3. Run migrations / database setup if required.
+## 📸 Preview
 
-### Run locally
+*(Coming Soon: Add a high-quality GIF of the swiping interaction here!)*
 
-```bash
-# backend
-cd backend
-uvicorn app.main:app --reload
+---
 
-# frontend (in another terminal)
-cd frontend
-npm run dev
-```
+## 🤝 Contributing
 
-Then open `http://localhost:3000` (or your configured port) in your browser and start swiping.
+Contributions are welcome! If you'd like to improve GitMatch, please follow these steps:
 
-***
+1. Fork the Project.
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the Branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
-## How GitMatch Works (High Level)
+---
 
-1. **Fetch repositories**  
-   GitMatch pulls repositories from GitHub using topics, languages, stars, and activity filters to build an initial pool of candidates.
+## 📜 License
 
-2. **Show one repo at a time**  
-   Each repository is displayed as a swipeable card with name, description, language, topics, stars, and last activity.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-3. **Capture your feedback**  
-   - Swipe right → mark as liked / star via GitHub API (if authorized)  
-   - Swipe left → skip, but still use the signal to adjust future suggestions  
+---
 
-4. **Refine recommendations**  
-   A simple matching / recommendation engine updates your personal feed based on language, topics, repo type, and your historical decisions.
-
-This keeps the experience simple while still giving you a powerful way to discover repositories tailored to your interests.
-
-***
-
-## Roadmap
-
-- Smarter recommendation engine (topic‑aware and language‑aware scoring)  
-- Filters for **language**, **stars range**, and **activity** (e.g., “active in last 30 days”)
-- Saved “collections” of liked repos for sharing with others  
-- Public “swipe feeds” for communities (e.g. Python, JS, Rust, data‑science)  
-- Mobile‑friendly PWA experience  
-
-Contributions, feature requests, and bug reports are welcome.
-
-***
-
-## Contributing
-
-Contributions are highly appreciated, especially from developers who care about open‑source discovery and developer experience.
-
-- Open an issue describing your idea or bug  
-- For larger changes, propose a design or UX flow first  
-- Submit a PR with clear description, screenshots or GIFs if applicable, and tests when relevant  
-
-If you use GitMatch in your community or write about it, linking back to this repository helps more developers discover it.
-
-***
-
-## Star & Share
-
-GitHub Trending is influenced heavily by how many people **star** a repository in a short time window and how much engagement it gets from developer communities.
-
-If GitMatch helps you discover useful GitHub repositories:
-
-- ⭐ Star this repo on GitHub  
-- 🔁 Share it in your dev communities (Discord, Slack, Reddit, Twitter/X, etc.)  
-- 🧩 Open an issue with ideas for new discovery modes and filters  
-
-***
-
-## License
-
-Add your chosen license here (MIT / Apache‑2.0 / etc.) so developers know how they can use and contribute to the project.
-
-***
-
-If you share your actual tech stack (Next.js + FastAPI + Postgres, for example) and final name, the next iteration can include a more specific “Tech Stack” section and tighter keyword placement around those technologies to target niche but high‑intent searches—what stack are you going with?
+<p align="center">
+  Built with ❤️ for the Open Source Community
+</p>

@@ -263,15 +263,15 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
   );
 
   return (
-    <div className="h-full flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="relative w-full max-w-md aspect-[3/4] mb-24">
+    <div className="h-full flex flex-col items-center justify-center p-4 relative overflow-hidden pt-[env(safe-area-inset-top,1rem)]">
+      <div className="relative w-full max-w-md aspect-[3/4] mb-40">
         <AnimatePresence>
            {repos.slice(currentIndex, currentIndex + 2).reverse().map((repo, idx) => (
              <RepoCard 
                key={repo.id} 
                repo={repo} 
                onSwipe={handleSwipe} 
-               isTop={currentIndex + idx === currentIndex + 1} 
+               isTop={idx === 1 || repos.slice(currentIndex, currentIndex + 2).length === 1} 
              />
            ))}
         </AnimatePresence>
@@ -311,26 +311,34 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
         )}
       </div>
 
-      {/* Control Buttons */}
-      <div className="absolute bottom-4 flex items-center gap-8">
-        <button 
-          onClick={() => handleSwipe('pass')}
-          className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center text-rose-500 hover:scale-110 active:scale-95 transition-all border border-slate-200 dark:border-slate-700"
-        >
-          <X size={32} />
-        </button>
-        <button 
-          onClick={() => handleSwipe('superlike')}
-          className="w-14 h-14 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center text-cyan-500 hover:scale-110 active:scale-95 transition-all border border-slate-200 dark:border-slate-700"
-        >
-          <Zap size={24} fill="currentColor" />
-        </button>
-        <button 
-          onClick={() => handleSwipe('like')}
-          className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center text-emerald-500 hover:scale-110 active:scale-95 transition-all border border-slate-200 dark:border-slate-700"
-        >
-          <Heart size={32} fill="currentColor" />
-        </button>
+      {/* Control Buttons and Help */}
+      <div className="absolute bottom-36 lg:bottom-12 flex flex-col items-center gap-6">
+        <div className="flex items-center gap-8">
+          <button 
+            onClick={() => handleSwipe('pass')}
+            className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center text-rose-500 hover:scale-110 active:scale-95 transition-all border border-slate-200 dark:border-slate-700"
+          >
+            <X size={32} />
+          </button>
+          <button 
+            onClick={() => handleSwipe('superlike')}
+            className="w-14 h-14 rounded-full bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center text-cyan-500 hover:scale-110 active:scale-95 transition-all border border-slate-200 dark:border-slate-700"
+          >
+            <Zap size={24} fill="currentColor" />
+          </button>
+          <button 
+            onClick={() => handleSwipe('like')}
+            className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center text-emerald-500 hover:scale-110 active:scale-95 transition-all border border-slate-200 dark:border-slate-700"
+          >
+            <Heart size={32} fill="currentColor" />
+          </button>
+        </div>
+        
+        <div className="flex gap-12 text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-50">
+          <span className="flex items-center gap-1"><ArrowLeft size={10} /> PASS</span>
+          <span className="flex items-center gap-1">UP FOR SUPER <Zap size={10} fill="currentColor" /></span>
+          <span className="flex items-center gap-1">LIKE <ArrowRight size={10} /></span>
+        </div>
       </div>
     </div>
   );
@@ -506,28 +514,33 @@ const SavedTab = ({ onSelectRepo, myLists }: { onSelectRepo: (repo: Repository) 
             animate={{ opacity: 1, x: 0 }}
             className="grid grid-cols-1 gap-4"
           >
-            {likes.map((like) => (
-              <motion.div 
-                key={like.repoId} 
-                layout
-                drag="x"
-                dragConstraints={{ right: 0 }}
-                onDragStart={() => setDraggingRepoId(like.repoId)}
-                onDragEnd={(_, info) => {
-                  setDraggingRepoId(null);
-                  if (info.offset.x < -100) handleDeleteInteraction(like.repoId);
-                }}
-                className="relative group min-h-[4rem]"
-              >
-                <div className="absolute inset-0 bg-rose-500 rounded-3xl flex items-center justify-end px-6 text-white font-black text-xs">
-                  <Trash2 size={24} />
-                  <span className="ml-2 uppercase">Remove from stash</span>
-                </div>
-                
-                <div 
-                  className="relative h-full flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 group-active:cursor-grabbing hover:border-orange-500/50 transition-colors shadow-sm cursor-pointer"
-                  onClick={() => onSelectRepo(like.repoData)}
+            <AnimatePresence mode="popLayout">
+              {likes.map((like) => (
+                <motion.div 
+                  key={like.repoId} 
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, x: 100, scale: 0.95 }}
+                  drag="x"
+                  dragConstraints={{ left: -100, right: 100 }}
+                  onDragStart={() => setDraggingRepoId(like.repoId)}
+                  onDragEnd={(_, info) => {
+                    setDraggingRepoId(null);
+                    if (info.offset.x > 100) handleDeleteInteraction(like.repoId);
+                  }}
+                  className="relative group min-h-[4.5rem]"
                 >
+                  <div className="absolute inset-y-0 left-0 w-full bg-rose-500 rounded-3xl flex items-center justify-start px-8 text-white font-black text-xs">
+                    <Trash2 size={24} className="mr-2" />
+                    <span className="uppercase">Remove from stash</span>
+                  </div>
+                  
+                  <motion.div 
+                    layout
+                    className="relative h-full flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 group-active:cursor-grabbing hover:border-orange-500/50 transition-colors shadow-sm cursor-pointer z-10"
+                    onClick={() => onSelectRepo(like.repoData)}
+                  >
                    <img src={like.repoData.owner.avatar_url} className="w-12 h-12 rounded-2xl object-cover" alt="" />
                    <div className="flex-1 min-w-0">
                      <div className="font-black truncate text-sm uppercase">{like.repoData.name}</div>
@@ -552,10 +565,11 @@ const SavedTab = ({ onSelectRepo, myLists }: { onSelectRepo: (repo: Repository) 
                    <a href={like.repoData.html_url} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-orange-500 transition-colors">
                      <ExternalLink size={20} />
                    </a>
-                </div>
-              </motion.div>
-            ))}
-            {likes.length === 0 && (
+                 </motion.div>
+               </motion.div>
+             ))}
+           </AnimatePresence>
+           {likes.length === 0 && (
               <div className="text-center py-20 bg-slate-50 dark:bg-slate-950/20 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
                 <Heart size={48} className="mx-auto mb-4 opacity-5" />
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No liked repos yet</p>
@@ -1098,21 +1112,37 @@ function MainApp() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-full relative overflow-y-auto no-scrollbar">
+      <main className="flex-1 max-w-full relative overflow-y-auto no-scrollbar pt-[env(safe-area-inset-top,1.5rem)]">
         <div className="max-w-xl mx-auto h-full flex flex-col">
           <AnimatePresence mode="wait">
             {activeTab === 'match' && (
-              <motion.div key="match" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+              <motion.div 
+                key="match" 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }} 
+                className="h-full"
+              >
                 <MatchTab follows={githubFollows} />
               </motion.div>
             )}
             {activeTab === 'discover' && (
-              <motion.div key="discover" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div 
+                key="discover" 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }}
+              >
                 <DiscoverTab onSelectRepo={setSelectedRepo} />
               </motion.div>
             )}
             {activeTab === 'saved' && (
-              <motion.div key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div 
+                key="saved" 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }}
+              >
                 <SavedTab 
                   onSelectRepo={setSelectedRepo} 
                   myLists={myLists}
@@ -1120,7 +1150,12 @@ function MainApp() {
               </motion.div>
             )}
             {activeTab === 'profile' && (
-              <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div 
+                key="profile" 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -20 }}
+              >
                 <ProfileTab 
                   follows={githubFollows} 
                   onViewProfile={setSelectedUser} 

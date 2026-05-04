@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence, PanInfo } from 'motion/react';
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'motion/react';
 import { Star, GitFork, ExternalLink, Calendar, Code2, History } from 'lucide-react';
 import { Repository, InteractionType } from '../types';
 import { cn } from '../lib/utils';
@@ -14,15 +14,20 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
   const [exitX, setExitX] = useState(0);
   const [exitY, setExitY] = useState(0);
 
+  const rotate = useMotionValue(0);
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-200, 0, 200], [0.5, 1, 0.5]);
+  const rotateTransform = useTransform(x, [-250, 250], [-35, 35]);
+  
   const handleDragEnd = (_: any, info: PanInfo) => {
-    if (info.offset.x > 100) {
-      setExitX(1000);
+    if (info.offset.x > 140) {
+      setExitX(1200);
       onSwipe('like');
-    } else if (info.offset.x < -100) {
-      setExitX(-1000);
+    } else if (info.offset.x < -140) {
+      setExitX(-1200);
       onSwipe('pass');
-    } else if (info.offset.y < -100) {
-      setExitY(-1000);
+    } else if (info.offset.y < -140) {
+      setExitY(-1200);
       onSwipe('superlike');
     }
   };
@@ -36,11 +41,12 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
       drag={isTop}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       onDragEnd={handleDragEnd}
-      animate={{ x: 0, y: 0, scale: isTop ? 1 : 0.95, opacity: 1 }}
-      exit={{ x: exitX, y: exitY, opacity: 0, scale: 0.5 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      style={{ x, rotate: rotateTransform, opacity: isTop ? opacity : 1 }}
+      animate={{ scale: isTop ? 1 : 0.95, opacity: 1 }}
+      exit={{ x: exitX, y: exitY, opacity: 0, scale: 0.5, rotate: exitX / 15 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 25 }}
       className={cn(
-        "absolute inset-0 bg-white dark:bg-slate-900 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden cursor-grab active:cursor-grabbing border border-slate-100 dark:border-slate-800",
+        "absolute inset-0 bg-white dark:bg-slate-900 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden cursor-grab active:cursor-grabbing border border-slate-100 dark:border-slate-800",
         !isTop && "pointer-events-none"
       )}
       id={`repo-card-${repo.id}`}
@@ -50,14 +56,19 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
 
       <div className="h-full flex flex-col p-8">
         {/* Header Area */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-4">
           <div className="flex-1 min-w-0 pr-4">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white truncate">
               {repo.name}
             </h2>
-            <p className="text-slate-500 text-xs mt-1 uppercase tracking-wider font-bold">
-              {repo.language || 'Any'} • Updated {formatDate(repo.updated_at)}
-            </p>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="flex items-center gap-1 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <Star size={12} className="text-amber-500 fill-amber-500" /> {repo.stargazers_count.toLocaleString()}
+              </span>
+              <span className="flex items-center gap-1 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <GitFork size={12} className="text-blue-500" /> {repo.forks_count.toLocaleString()}
+              </span>
+            </div>
           </div>
           <div className="bg-blue-50 dark:bg-slate-800 text-blue-600 p-2.5 rounded-xl">
              <Code2 size={24} />
@@ -65,35 +76,28 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
         </div>
 
         {/* Description */}
-        <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 line-clamp-4 flex-1">
-          {repo.description || "No description provided. This repository is waiting to be explored."}
-        </p>
+        <div className="mb-6">
+          <span className="inline-block px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
+            {repo.language || 'Any'}
+          </span>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-4 flex-1 text-sm">
+            {repo.description || "No description provided. This repository is waiting to be explored."}
+          </p>
+        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        {/* Stats Grid - Now with Dates */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
             <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-              <Calendar size={10} /> Created
+              <Calendar size={10} /> First Commit
             </p>
-            <p className="text-base font-bold text-slate-900 dark:text-white">{formatDate(repo.created_at)}</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">{formatDate(repo.created_at)}</p>
           </div>
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
             <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-              <Star size={10} /> Stars
+               <History size={10} /> Latest Sync
             </p>
-            <p className="text-base font-bold text-slate-900 dark:text-white">{repo.stargazers_count.toLocaleString()}</p>
-          </div>
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-              <GitFork size={10} /> Forks
-            </p>
-            <p className="text-base font-bold text-slate-900 dark:text-white">{repo.forks_count.toLocaleString()}</p>
-          </div>
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-               <History size={10} /> Latest
-            </p>
-            <p className="text-base font-bold text-slate-900 dark:text-white">{formatDate(repo.updated_at)}</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">{formatDate(repo.updated_at)}</p>
           </div>
         </div>
 
