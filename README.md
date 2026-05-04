@@ -21,19 +21,19 @@ Built for developers, GitMatch is a lightweight GitHub companion that makes it f
 ## Key Features
 
 - **Swipe‑based GitHub repo discovery**  
-  Explore repositories through a Tinder‑style, card‑based interface optimized for quick decisions. [reddit](https://www.reddit.com/r/SaaS/comments/1rmeix5/built_a_tinder_for_github_repos_got_34k_visitors/)
+  Explore repositories through a Tinder‑style, card‑based interface optimized for quick decisions.
 
 - **Personalized recommendations**  
-  GitMatch learns from your swipes, topics, languages, and stars to surface projects that match your interests and tech stack. [infrasity](https://www.infrasity.com/blog/github-seo)
+  GitMatch learns from your swipes, topics, languages, and stars to surface projects that match your interests and tech stack.
 
 - **GitHub & Google sign‑in**  
-  Authenticate with GitHub or Google, securely connect your account, and start swiping in seconds. [nakora](https://nakora.ai/blog/github-seo)
+  Authenticate with GitHub or Google, securely connect your account, and start swiping in seconds.
 
 - **Open‑source friendly by design**  
-  Discover trending repos, hidden gems, and niche tools you would never see in the default GitHub search experience. [apps.apple](https://apps.apple.com/us/app/githubba-discover-repos/id6747093581)
+  Discover trending repos, hidden gems, and niche tools you would never see in the default GitHub search experience.
 
 - **Built for developers**  
-  Ideal for finding projects to star, fork, learn from, or contribute to—whether you are a beginner looking for learning material or an experienced dev looking for serious OSS work. [dev](https://dev.to/infrasity-learning/the-ultimate-guide-to-github-seo-for-2025-38kl)
+  Ideal for finding projects to star, fork, learn from, or contribute to—whether you are a beginner looking for learning material or an experienced dev looking for serious OSS work.
 
 ***
 
@@ -103,7 +103,7 @@ Then open `http://localhost:3000` (or your configured port) in your browser and 
 ## How GitMatch Works (High Level)
 
 1. **Fetch repositories**  
-   GitMatch pulls repositories from GitHub using topics, languages, stars, and activity filters to build an initial pool of candidates. [yuv](https://yuv.ai/blog/github-trending)
+   GitMatch pulls repositories from GitHub using topics, languages, stars, and activity filters to build an initial pool of candidates.
 
 2. **Show one repo at a time**  
    Each repository is displayed as a swipeable card with name, description, language, topics, stars, and last activity.
@@ -113,7 +113,7 @@ Then open `http://localhost:3000` (or your configured port) in your browser and 
    - Swipe left → skip, but still use the signal to adjust future suggestions  
 
 4. **Refine recommendations**  
-   A simple matching / recommendation engine updates your personal feed based on language, topics, repo type, and your historical decisions. [infrasity](https://www.infrasity.com/blog/github-seo)
+   A simple matching / recommendation engine updates your personal feed based on language, topics, repo type, and your historical decisions.
 
 This keeps the experience simple while still giving you a powerful way to discover repositories tailored to your interests.
 
@@ -122,7 +122,7 @@ This keeps the experience simple while still giving you a powerful way to discov
 ## Roadmap
 
 - Smarter recommendation engine (topic‑aware and language‑aware scoring)  
-- Filters for **language**, **stars range**, and **activity** (e.g., “active in last 30 days”) [apps.apple](https://apps.apple.com/us/app/githubba-discover-repos/id6747093581)
+- Filters for **language**, **stars range**, and **activity** (e.g., “active in last 30 days”)
 - Saved “collections” of liked repos for sharing with others  
 - Public “swipe feeds” for communities (e.g. Python, JS, Rust, data‑science)  
 - Mobile‑friendly PWA experience  
@@ -145,7 +145,7 @@ If you use GitMatch in your community or write about it, linking back to this re
 
 ## Star & Share
 
-GitHub Trending is influenced heavily by how many people **star** a repository in a short time window and how much engagement it gets from developer communities. [gitroom](https://gitroom.com/blog/everything-know-github-trending-feed)
+GitHub Trending is influenced heavily by how many people **star** a repository in a short time window and how much engagement it gets from developer communities.
 
 If GitMatch helps you discover useful GitHub repositories:
 
