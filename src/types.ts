@@ -30,6 +30,19 @@ export interface Repository {
   commit_count?: number;
 }
 
+export interface GithubUser {
+  login: string;
+  avatar_url: string;
+  name?: string;
+  bio?: string;
+  location?: string;
+  blog?: string;
+  twitter_username?: string;
+  followers: number;
+  following: number;
+  html_url: string;
+}
+
 export type InteractionType = 'like' | 'pass' | 'superlike' | 'open';
 
 export interface Interaction {

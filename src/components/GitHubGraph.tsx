@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { cn } from '../lib/utils';
 
 interface GitHubGraphProps {
-  stats: any[]; // Array of weekly commit activity
+  stats: { week: number, total: number }[]; // Array of weekly commit activity
 }
 
 export const GitHubGraph: React.FC<GitHubGraphProps> = ({ stats }) => {
@@ -48,8 +49,3 @@ export const GitHubGraph: React.FC<GitHubGraphProps> = ({ stats }) => {
     </div>
   );
 };
-
-// Simple utility for class joining if not imported
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ');
-}

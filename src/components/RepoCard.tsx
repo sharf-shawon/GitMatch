@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'motion/react';
+import { motion, PanInfo, useMotionValue, useTransform } from 'motion/react';
 import { Star, GitFork, ExternalLink, Calendar, Code2, History } from 'lucide-react';
 import { Repository, InteractionType } from '../types';
 import { cn } from '../lib/utils';
@@ -14,12 +14,11 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
   const [exitX, setExitX] = useState(0);
   const [exitY, setExitY] = useState(0);
 
-  const rotate = useMotionValue(0);
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0, 200], [0.5, 1, 0.5]);
   const rotateTransform = useTransform(x, [-250, 250], [-35, 35]);
   
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x > 140) {
       setExitX(1200);
       onSwipe('like');

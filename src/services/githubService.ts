@@ -1,4 +1,4 @@
-import { Repository } from '../types';
+import { Repository, GithubUser } from '../types';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 
@@ -19,7 +19,7 @@ export const githubService = {
     if (!response.ok) throw new Error('Failed to fetch repos');
     
     const data = await response.json();
-    return data.items.map((item: any) => ({
+    return data.items.map((item: Repository) => ({
       ...item,
       languages: [item.language].filter(Boolean)
     }));
@@ -30,7 +30,7 @@ export const githubService = {
     const response = await fetch(`${GITHUB_API_BASE}/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=30&page=${page}`);
     if (!response.ok) return [];
     const data = await response.json();
-    return data.items.map((item: any) => ({
+    return data.items.map((item: Repository) => ({
       ...item,
       languages: [item.language].filter(Boolean)
     }));
@@ -61,14 +61,14 @@ export const githubService = {
     return response.text();
   },
 
-  async getRepoStats(owner: string, repo: string): Promise<any[]> {
+  async getRepoStats(owner: string, repo: string): Promise<{ week: number, total: number }[]> {
     const response = await fetch(`${GITHUB_API_BASE}/repos/${owner}/${repo}/stats/commit_activity`);
     if (!response.ok) return [];
     if (response.status === 202) return [];
     return response.json();
   },
 
-  async getUser(username: string): Promise<any> {
+  async getUser(username: string): Promise<GithubUser> {
     const response = await fetch(`${GITHUB_API_BASE}/users/${username}`);
     if (!response.ok) throw new Error('User not found');
     return response.json();
@@ -78,7 +78,7 @@ export const githubService = {
     const response = await fetch(`${GITHUB_API_BASE}/users/${username}/repos?sort=updated&per_page=10`);
     if (!response.ok) return [];
     const items = await response.json();
-    return items.map((item: any) => ({
+    return items.map((item: Repository) => ({
       ...item,
       languages: [item.language].filter(Boolean)
     }));

@@ -9,7 +9,6 @@ import { Repository, CuratedList } from '../types';
 import { GitHubGraph } from './GitHubGraph';
 import { cn } from '../lib/utils';
 import { 
-  X, 
   Star, 
   GitFork, 
   Eye, 
@@ -20,7 +19,6 @@ import {
   Code2,
   ChevronLeft,
   Heart,
-  Plus,
   FolderPlus
 } from 'lucide-react';
 
@@ -42,7 +40,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
   onMoveToList
 }) => {
   const [readme, setReadme] = useState('');
-  const [stats, setStats] = useState<any[]>([]);
+  const [stats, setStats] = useState<{ day: string, count: number }[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCollections, setShowCollections] = useState(false);
@@ -261,7 +259,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
                   remarkPlugins={[remarkGfm]} 
                   rehypePlugins={[rehypeRaw]}
                   components={{
-                    img: ({ node, ...props }) => {
+                    img: ({ node: _node, ...props }) => {
                       // Fix relative images
                       if (props.src && !props.src.startsWith('http')) {
                         const baseUrl = `https://raw.githubusercontent.com/${repo.full_name}/${repo.default_branch || 'main'}`;
@@ -270,7 +268,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
                       }
                       return <img {...props} style={{ maxWidth: '100%', height: 'auto' }} />;
                     },
-                    a: ({ node, ...props }) => {
+                    a: ({ node: _node, ...props }) => {
                       // Fix relative links
                       if (props.href && !props.href.startsWith('http') && !props.href.startsWith('#')) {
                         const baseUrl = `https://github.com/${repo.full_name}/blob/${repo.default_branch || 'main'}`;

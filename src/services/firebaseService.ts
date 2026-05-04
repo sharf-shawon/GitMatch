@@ -7,11 +7,8 @@ import {
   query, 
   where, 
   orderBy, 
-  limit,
   serverTimestamp,
   updateDoc,
-  arrayUnion,
-  arrayRemove,
   deleteDoc,
   onSnapshot
 } from 'firebase/firestore';
@@ -179,10 +176,10 @@ export const firebaseService = {
     }
   },
 
-  listenGithubFollows(uid: string, callback: (follows: any[]) => void) {
+  listenGithubFollows(uid: string, callback: (follows: { username: string, avatarUrl: string }[]) => void) {
     const q = query(collection(db, 'githubFollows'), where('userId', '==', uid));
     return onSnapshot(q, (snap) => {
-      callback(snap.docs.map(d => d.data()));
+      callback(snap.docs.map(d => d.data() as { username: string, avatarUrl: string }));
     }, (err) => {
       handleFirestoreError(err, OperationType.LIST, 'githubFollows');
     });

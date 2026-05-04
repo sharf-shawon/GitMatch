@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { githubService } from '../services/githubService';
 import { firebaseService } from '../services/firebaseService';
-import { Repository } from '../types';
+import { Repository, GithubUser } from '../types';
 import { cn } from '../lib/utils';
 import { 
-  X, 
   MapPin, 
   Link as LinkIcon, 
   Twitter, 
@@ -24,7 +23,7 @@ interface UserProfileViewProps {
 }
 
 export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onClose, onSelectRepo }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<GithubUser | null>(null);
   const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
