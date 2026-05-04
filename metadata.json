@@ -1,6 +1,6 @@
 {
   "name": "GitMatch",
-  "description": "A Tinder-like discovery app for GitHub repositories. Swipe right to like, left to pass, and find your next favorite project.",
+  "description": "Swipe to discover your next favorite GitHub repository.\n\nA T!nder-like discovery app for GitHub repositories. Swipe right to like, left to pass, and find your next favorite project.\n\nRepoMatch is a swipe‑based GitHub repository discovery tool that helps developers quickly find projects they actually want to star, contribute to, or learn from. Instead of scrolling endless lists, you log in with GitHub or Google and swipe right on interesting repos and left on the rest. Every swipe trains your personal feed, so recommendations get smarter, more relevant, and closer to your true interests over time. Optimized for open‑source exploration, RepoMatch surfaces trending projects, hidden gems, and tech stacks that match your skills and goals.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

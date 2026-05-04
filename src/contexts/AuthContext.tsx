@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import { auth, googleProvider, githubProvider } from '../lib/firebase';
 import { firebaseService } from '../services/firebaseService';
 import { UserProfile } from '../types';
 
@@ -9,6 +9,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   signIn: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
 }
@@ -54,6 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGithub = async () => {
+    try {
+      await signInWithPopup(auth, githubProvider);
+    } catch (error) {
+      console.error("GitHub Sign in failed", error);
+    }
+  };
+
   const logout = async () => {
     await signOut(auth);
   };
@@ -66,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signIn, signInWithGithub, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

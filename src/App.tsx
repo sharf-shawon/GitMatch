@@ -968,7 +968,7 @@ const ProfileTab = ({ follows, onViewProfile }: { follows: any[], onViewProfile:
 };
 
 function MainApp() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading, signIn, signInWithGithub } = useAuth();
   const [activeTab, setActiveTab] = useState<'match' | 'discover' | 'saved' | 'profile'>('match');
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -1013,12 +1013,21 @@ function MainApp() {
            <p className="text-slate-500 font-medium text-lg">Swipe your way to better code.</p>
         </div>
 
-        <button 
-          onClick={signIn}
-          className="w-full max-w-xs bg-slate-900 text-white font-extrabold py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all text-xl"
-        >
-          <Github fill="currentColor" size={24} /> Login with Google
-        </button>
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          <button 
+            onClick={signInWithGithub}
+            className="w-full bg-slate-900 text-white font-extrabold py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all text-xl"
+          >
+            <Github fill="currentColor" size={24} /> LOGIN WITH GITHUB
+          </button>
+
+          <button 
+            onClick={signIn}
+            className="w-full bg-white text-slate-900 border border-slate-200 font-extrabold py-5 rounded-2xl shadow-lg flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all text-xl"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-6 h-6" alt="" /> LOGIN WITH GOOGLE
+          </button>
+        </div>
         
         <p className="mt-8 text-slate-400 text-center text-xs px-12 leading-relaxed">
           The curated way to find GitHub projects.
