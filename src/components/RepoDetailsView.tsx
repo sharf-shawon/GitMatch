@@ -103,18 +103,18 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 text-center">
-            <Star size={20} className="mx-auto mb-2 text-amber-500" />
-            <div className="text-xl font-black italic">{repo.stargazers_count}</div>
+            {loading ? <div className="h-6 w-12 mx-auto bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /> : <Star size={20} className="mx-auto mb-2 text-amber-500" />}
+            <div className="text-xl font-black italic">{loading ? "---" : repo.stargazers_count}</div>
             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">STARS</div>
           </div>
           <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 text-center">
-            <GitFork size={20} className="mx-auto mb-2 text-indigo-500" />
-            <div className="text-xl font-black italic">{repo.forks_count}</div>
+            {loading ? <div className="h-6 w-12 mx-auto bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /> : <GitFork size={20} className="mx-auto mb-2 text-indigo-500" />}
+            <div className="text-xl font-black italic">{loading ? "---" : repo.forks_count}</div>
             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">FORKS</div>
           </div>
           <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 text-center">
-            <Eye size={20} className="mx-auto mb-2 text-emerald-500" />
-            <div className="text-xl font-black italic">{repo.watchers_count}</div>
+            {loading ? <div className="h-6 w-12 mx-auto bg-slate-200 dark:bg-slate-800 rounded animate-pulse" /> : <Eye size={20} className="mx-auto mb-2 text-emerald-500" />}
+            <div className="text-xl font-black italic">{loading ? "---" : repo.watchers_count}</div>
             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">WATCHERS</div>
           </div>
         </div>
@@ -125,11 +125,15 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
             <Code2 size={16} /> STACK
           </div>
           <div className="flex flex-wrap gap-2">
-            {languages.length > 0 ? languages.map(lang => (
-              <span key={lang} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-2xl text-[11px] font-black uppercase border border-slate-200 dark:border-slate-700">
-                {lang}
-              </span>
-            )) : (
+            {loading ? (
+              [1,2,3].map(i => <div key={i} className="h-10 w-24 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />)
+            ) : languages.length > 0 ? (
+              languages.map(lang => (
+                <span key={lang} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-2xl text-[11px] font-black uppercase border border-slate-200 dark:border-slate-700">
+                  {lang}
+                </span>
+              ))
+            ) : (
               <span className="text-[11px] font-black text-slate-400 uppercase">Wait, no code? Impossible.</span>
             )}
           </div>
@@ -138,19 +142,31 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
         {/* Owner Info */}
         <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl flex items-center justify-between group overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-          <div className="flex items-center gap-4 relative z-10">
-            <img src={repo.owner.avatar_url} className="w-16 h-16 rounded-3xl object-cover shadow-xl" alt="" />
-            <div>
-              <div className="text-[10px] font-black text-orange-500 uppercase tracking-widest">MAINTAINED BY</div>
-              <h3 className="text-xl font-black italic uppercase group-hover:text-orange-500 transition-colors">{repo.owner.login}</h3>
-            </div>
-          </div>
-          <button 
-            onClick={() => onViewProfile(repo.owner.login)}
-            className="p-4 bg-white/10 hover:bg-orange-500 text-white rounded-2xl transition-all shadow-xl relative z-10"
-          >
-            <User size={24} />
-          </button>
+          {loading ? (
+             <div className="flex items-center gap-4 relative z-10 animate-pulse w-full">
+                <div className="w-16 h-16 bg-white/10 rounded-3xl" />
+                <div className="flex-1 space-y-2">
+                   <div className="h-2 w-20 bg-white/10 rounded" />
+                   <div className="h-6 w-32 bg-white/10 rounded" />
+                </div>
+             </div>
+          ) : (
+             <>
+              <div className="flex items-center gap-4 relative z-10">
+                <img src={repo.owner.avatar_url} className="w-16 h-16 rounded-3xl object-cover shadow-xl" alt="" />
+                <div>
+                  <div className="text-[10px] font-black text-orange-500 uppercase tracking-widest">MAINTAINED BY</div>
+                  <h3 className="text-xl font-black italic uppercase group-hover:text-orange-500 transition-colors">{repo.owner.login}</h3>
+                </div>
+              </div>
+              <button 
+                onClick={() => onViewProfile(repo.owner.login)}
+                className="p-4 bg-white/10 hover:bg-orange-500 text-white rounded-2xl transition-all shadow-xl relative z-10"
+              >
+                <User size={24} />
+              </button>
+             </>
+          )}
         </div>
 
         {/* Activity Graph */}
@@ -181,54 +197,63 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
             <>
               {/* Action Buttons */}
               <div className="flex gap-4 mb-8">
-                 <button 
-                   onClick={() => {
-                     onLike();
-                     setHasLiked(true);
-                   }}
-                   className={cn(
-                     "flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 font-black italic uppercase text-xs tracking-widest transition-all",
-                     hasLiked ? "bg-rose-500 text-white shadow-rose-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-50 hover:text-rose-500"
-                   )}
-                 >
-                   <Heart size={18} fill={hasLiked ? "currentColor" : "none"} /> {hasLiked ? 'LIKED' : 'LIKE REPO'}
-                 </button>
-                 
-                 <div className="flex-1 relative">
-                    <button 
-                      onClick={() => setShowCollections(!showCollections)}
-                      className="w-full py-4 bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 font-black italic uppercase text-xs tracking-widest hover:opacity-90 transition-all"
-                    >
-                      <FolderPlus size={18} /> STASH
-                    </button>
-                    
-                    <AnimatePresence>
-                      {showCollections && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-30"
+                 {loading ? (
+                    <>
+                       <div className="flex-1 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+                       <div className="flex-1 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+                    </>
+                 ) : (
+                    <>
+                     <button 
+                       onClick={() => {
+                         onLike();
+                         setHasLiked(true);
+                       }}
+                       className={cn(
+                         "flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 font-black italic uppercase text-xs tracking-widest transition-all",
+                         hasLiked ? "bg-rose-500 text-white shadow-rose-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-50 hover:text-rose-500"
+                       )}
+                     >
+                       <Heart size={18} fill={hasLiked ? "currentColor" : "none"} /> {hasLiked ? 'LIKED' : 'LIKE REPO'}
+                     </button>
+                     
+                     <div className="flex-1 relative">
+                        <button 
+                          onClick={() => setShowCollections(!showCollections)}
+                          className="w-full py-4 bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 font-black italic uppercase text-xs tracking-widest hover:opacity-90 transition-all"
                         >
-                           <div className="max-h-48 overflow-y-auto p-2">
-                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest p-2 border-b border-slate-50 dark:border-slate-700/50 mb-1 text-center">ADD TO COLLECTION</p>
-                              {myLists.map(list => (
-                                <button
-                                  key={list.id}
-                                  onClick={() => {
-                                    onMoveToList(list.id);
-                                    setShowCollections(false);
-                                  }}
-                                  className="w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-tighter hover:bg-orange-500 hover:text-white transition-colors"
-                                >
-                                  {list.title}
-                                </button>
-                              ))}
-                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                 </div>
+                          <FolderPlus size={18} /> STASH
+                        </button>
+                        
+                        <AnimatePresence>
+                          {showCollections && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-30"
+                            >
+                               <div className="max-h-48 overflow-y-auto p-2">
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest p-2 border-b border-slate-50 dark:border-slate-700/50 mb-1 text-center">ADD TO COLLECTION</p>
+                                  {myLists.map(list => (
+                                    <button
+                                      key={list.id}
+                                      onClick={() => {
+                                        onMoveToList(list.id);
+                                        setShowCollections(false);
+                                      }}
+                                      className="w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-tighter hover:bg-orange-500 hover:text-white transition-colors"
+                                    >
+                                      {list.title}
+                                    </button>
+                                  ))}
+                               </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                     </div>
+                    </>
+                 )}
               </div>
 
               <div className="markdown-body !bg-transparent !text-inherit">

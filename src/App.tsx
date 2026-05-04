@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { RepoCard } from './components/RepoCard';
 import { githubService } from './services/githubService';
 import { firebaseService } from './services/firebaseService';
-import { geminiService } from './services/geminiService';
 import { Repository, InteractionType, CuratedList, Interaction } from './types';
 import { 
   Flame, 
@@ -170,22 +169,53 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
       const ids = await firebaseService.getAllInteractedRepoIds(user.uid);
       setInteractedIds(ids);
 
-      // Start by fetching repos from followed accounts if any
-      let initial: Repository[] = [];
+      let pool: Repository[] = [];
+      
+      // 1. Try Followed users first
       if (follows.length > 0) {
-        const followUsername = follows[Math.floor(Math.random() * follows.length)].username;
-        const followedRepos = await githubService.getUserRepos(followUsername);
-        initial = [...followedRepos];
+        const randomFollows = follows.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const followResults = await Promise.all(
+          randomFollows.map(f => githubService.getUserRepos(f.username))
+        );
+        pool.push(...followResults.flat());
       }
 
-      const lang = profile?.preferredLanguages?.[0];
-      const trending = await githubService.getTrendingRepos(lang);
+      // 2. Try Preferred Languages (Pick 2 random ones if available)
+      const langs = (profile?.preferredLanguages || ['typescript', 'javascript', 'python', 'rust', 'go']).sort(() => 0.5 - Math.random());
+      const selectedLangs = langs.slice(0, 2);
       
-      const combined = [...initial, ...trending];
-      const filtered = combined.filter(r => !ids.has(r.id.toString()));
+      const langResults = await Promise.all(
+        selectedLangs.map(l => githubService.getTrendingRepos(l))
+      );
+      pool.push(...langResults.flat());
+
+      // 3. Try Trending overall if still low
+      if (pool.length < 20) {
+        const trending = await githubService.getTrendingRepos();
+        pool.push(...trending);
+      }
+
+      // 4. Seed with Liked Topics if they exist
+      const likes = await firebaseService.getUserLikes(user.uid);
+      if (likes.length > 0) {
+        const recentLikes = likes.slice(0, 5);
+        const randomLike = recentLikes[Math.floor(Math.random() * recentLikes.length)];
+        const topicMatches = await githubService.getTrendingRepos(randomLike.repoData.language || undefined);
+        pool.push(...topicMatches);
+      }
+
+      const filtered = pool.filter(r => !ids.has(r.id.toString()));
       
-      // Shuffle combined but keep followed near top
-      setRepos(filtered);
+      // If still empty, try one last desperation search
+      if (filtered.length === 0) {
+        const fallback = await githubService.getTrendingRepos(undefined, 'stars:>1000');
+        const finalFiltered = fallback.filter(r => !ids.has(r.id.toString()));
+        setRepos(finalFiltered);
+      } else {
+        // Shuffle the pool for variety
+        setRepos(filtered.sort(() => 0.5 - Math.random()));
+      }
+      
       setCurrentIndex(0);
     } catch (e) {
       console.error(e);
@@ -199,28 +229,33 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
     setLoadingMore(true);
     
     try {
-      let keywords: string[] = [];
-      try {
-        const likes = await firebaseService.getUserLikes(user.uid);
-        if (likes.length > 0) {
-          keywords = await geminiService.recommendKeywords(likes.slice(0, 5).map(l => l.repoData));
-        }
-      } catch (err) {
-        console.warn("Learning error", err);
-      }
-
-      // Mix in a follow-based search if possible
-      let searchKeyword = keywords[0] || profile?.preferredLanguages?.[Math.floor(Math.random() * (profile?.preferredLanguages?.length || 1))] || 'typescript';
-      
-      if (follows.length > 0 && Math.random() > 0.5) {
-        searchKeyword = `user:${follows[Math.floor(Math.random() * follows.length)].username}`;
-      }
-
       const nextPage = page + 1;
-      const newRepos = await githubService.getTrendingRepos(undefined, searchKeyword, nextPage);
+      let newPool: Repository[] = [];
+
+      // Alternate search strategies
+      const dice = Math.random();
+      
+      if (dice > 0.7 && follows.length > 0) {
+        // Find more from followed users' circles
+        const randomFollow = follows[Math.floor(Math.random() * follows.length)];
+        const followedRepos = await githubService.getUserRepos(randomFollow.username);
+        newPool.push(...followedRepos);
+      } else {
+        // Random language from preferences
+        const langs = profile?.preferredLanguages || ['typescript', 'javascript', 'python', 'rust', 'go'];
+        const randomLang = langs[Math.floor(Math.random() * langs.length)];
+        const results = await githubService.getTrendingRepos(randomLang, undefined, nextPage);
+        newPool.push(...results);
+      }
+
+      // Desperation fallback in pagination
+      if (newPool.length === 0 || newPool.every(r => interactedIds.has(r.id.toString()))) {
+        const wildResults = await githubService.getTrendingRepos(undefined, undefined, nextPage);
+        newPool.push(...wildResults);
+      }
       
       // Filter out duplicates and already seen
-      const filteredNew = newRepos.filter(r => 
+      const filteredNew = newPool.filter(r => 
         !interactedIds.has(r.id.toString()) && 
         !repos.some(rr => rr.id === r.id)
       );
@@ -228,15 +263,9 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
       if (filteredNew.length > 0) {
         setRepos(prev => [...prev, ...filteredNew]);
         setPage(nextPage);
-      } else if (page < 5) {
-        // Try one more page with no specific keyword if literal exact search failed
-        const fallbackRepos = await githubService.getTrendingRepos(undefined, undefined, nextPage);
-        const filteredFallback = fallbackRepos.filter(r => 
-          !interactedIds.has(r.id.toString()) && 
-          !repos.some(rr => rr.id === r.id)
-        );
-        setRepos(prev => [...prev, ...filteredFallback]);
-        setPage(nextPage);
+      } else if (page < 10) {
+        // Skip ahead even more if current page is exhausted
+        setPage(page + 2);
       }
     } catch (err) {
       console.error("Failed to fetch more repos", err);
