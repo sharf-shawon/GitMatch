@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Information about the user and their preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "interests": { "type": "array", "items": { "type": "string" } },
+        "preferredLanguages": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Interaction": {
+      "title": "Interaction",
+      "description": "User's swipe action on a repository.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "repoId": { "type": "string" },
+        "repoData": { "type": "object" },
+        "type": { "type": "string", "enum": ["like", "pass", "superlike"] },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "repoId", "type", "timestamp"]
+    },
+    "CuratedList": {
+      "title": "Curated List",
+      "description": "A collection of repositories curated by a user.",
+      "type": "object",
+      "properties": {
+        "listId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "repoIds": { "type": "array", "items": { "type": "string" } },
+        "repos": { "type": "array", "items": { "type": "object" } },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "repoIds"]
+    },
+    "Follow": {
+      "title": "Follow",
+      "description": "Tracks users following other users' lists.",
+      "type": "object",
+      "properties": {
+        "followerId": { "type": "string" },
+        "followedUserId": { "type": "string" },
+        "listId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["followerId", "listId", "timestamp"]
+    },
+    "GitHubFollow": {
+      "title": "GitHub Follow",
+      "description": "Tracks GitHub users followed by a platform user for feed customization.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date" }
+      },
+      "required": ["userId", "username"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "UserProfile",
+      "description": "Collection of user profiles."
+    },
+    "interactions": {
+      "schema": "Interaction",
+      "description": "Collection of user swipe interactions."
+    },
+    "lists": {
+      "schema": "CuratedList",
+      "description": "Collection of curated repo lists."
+    },
+    "follows": {
+      "schema": "Follow",
+      "description": "Collection of list follows."
+    },
+    "githubFollows": {
+      "schema": "GitHubFollow",
+      "description": "Collection of followed GitHub users."
+    }
+  }
+}

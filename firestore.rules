@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isEmailVerified() { return request.auth.token.email_verified == true; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // User profiles
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.userId == userId 
+          && data.email is string
+          && (data.interests is list || !data.keys().hasAll(['interests']))
+          && (data.preferredLanguages is list || !data.keys().hasAll(['preferredLanguages']));
+      }
+
+      allow get: if isSignedIn();
+      allow list: if false; // Profiles are not listable globally
+      allow create: if isOwner(userId) && isEmailVerified() && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    // Interactions
+    match /interactions/{interactionId} {
+      function isValidInteraction(data) {
+        return data.userId == request.auth.uid
+          && data.type in ['like', 'pass', 'superlike']
+          && data.repoId is string
+          && data.timestamp is number;
+      }
+
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update: if isSignedIn() && isValidInteraction(request.resource.data);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Curated Lists
+    match /lists/{listId} {
+      function isValidList(data) {
+        return data.ownerId == request.auth.uid
+          && data.title is string && data.title.size() <= 100
+          && data.repoIds is list;
+      }
+
+      allow list: if resource.data.isPublic == true || resource.data.ownerId == request.auth.uid;
+      allow get: if resource.data.isPublic == true || resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidList(request.resource.data);
+      allow update: if isSignedIn() && resource.data.ownerId == request.auth.uid && isValidList(request.resource.data);
+      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Follows
+    match /follows/{followId} {
+      allow create, delete: if isSignedIn() && request.auth.uid == request.resource.data.followerId;
+      allow list, get: if isSignedIn() && resource.data.followerId == request.auth.uid;
+    }
+
+    // GitHub Follows
+    match /githubFollows/{followId} {
+      function isValidGithubFollow(data) {
+        return data.userId == request.auth.uid
+          && data.username is string && data.username.size() <= 100;
+      }
+
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidGithubFollow(request.resource.data);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

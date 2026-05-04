@@ -1,0 +1,6 @@
+{
+  "name": "GitMatch",
+  "description": "A Tinder-like discovery app for GitHub repositories. Swipe right to like, left to pass, and find your next favorite project.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
