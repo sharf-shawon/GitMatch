@@ -29,6 +29,9 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
     } else if (info.offset.y < -140) {
       setExitY(-1200);
       onSwipe('superlike');
+    } else if (info.offset.y > 140) {
+      setExitY(1200);
+      onSwipe('open');
     }
   };
 
@@ -58,60 +61,60 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
         {/* Header Area */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1 min-w-0 pr-4">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white truncate">
-              {repo.name}
+            <h2 className="text-xl text-slate-900 dark:text-white truncate tracking-tight leading-tight">
+              <span className="font-medium text-slate-400 dark:text-slate-500">{repo.owner.login}/</span>
+              <span className="font-extrabold">{repo.name}</span>
             </h2>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="flex items-center gap-1 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                <Star size={12} className="text-amber-500 fill-amber-500" /> {repo.stargazers_count.toLocaleString()}
+            <div className="flex items-center gap-3 mt-1.5">
+              <span className="flex items-center gap-1 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                <Star size={10} className="text-amber-500 fill-amber-500" /> {repo.stargazers_count.toLocaleString()}
               </span>
-              <span className="flex items-center gap-1 text-slate-500 text-xs font-bold uppercase tracking-wider">
-                <GitFork size={12} className="text-blue-500" /> {repo.forks_count.toLocaleString()}
+              <span className="flex items-center gap-1 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                <GitFork size={10} className="text-blue-500" /> {repo.forks_count.toLocaleString()}
               </span>
             </div>
           </div>
-          <div className="bg-blue-50 dark:bg-slate-800 text-blue-600 p-2.5 rounded-xl">
+          <div className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-2xl border border-slate-100 dark:border-slate-800">
              <Code2 size={24} />
           </div>
         </div>
 
         {/* Description */}
-        <div className="mb-6">
+        <div className="flex-1 overflow-hidden">
           <span className="inline-block px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
             {repo.language || 'Any'}
           </span>
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-4 flex-1 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-6 text-sm font-medium">
             {repo.description || "No description provided. This repository is waiting to be explored."}
           </p>
         </div>
 
-        {/* Stats Grid - Now with Dates */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-              <Calendar size={10} /> First Commit
-            </p>
-            <p className="text-sm font-bold text-slate-900 dark:text-white">{formatDate(repo.created_at)}</p>
+        {/* Footer Area with Stats and Action */}
+        <div className="mt-6 flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+              <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-0.5 flex items-center gap-1">
+                <Calendar size={10} /> Created
+              </p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(repo.created_at)}</p>
+            </div>
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+              <p className="text-[9px] text-slate-400 uppercase tracking-widest font-bold mb-0.5 flex items-center gap-1">
+                 <History size={10} /> Updated
+              </p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(repo.updated_at)}</p>
+            </div>
           </div>
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-               <History size={10} /> Latest Sync
-            </p>
-            <p className="text-sm font-bold text-slate-900 dark:text-white">{formatDate(repo.updated_at)}</p>
-          </div>
-        </div>
 
-        {/* Action Button */}
-        <div className="mt-auto">
           <a 
             href={repo.html_url}
             target="_blank"
             rel="noreferrer"
-            className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
+            className="w-full py-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 text-slate-900 dark:text-white rounded-2xl font-black italic uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
             onClick={(e) => e.stopPropagation()}
           >
-            Open Repository
-            <ExternalLink size={18} />
+            Go to Source
+            <ExternalLink size={14} />
           </a>
         </div>
       </div>

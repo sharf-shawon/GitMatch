@@ -141,7 +141,7 @@ const InstallPrompt = () => {
 };
 
 // Components for different tabs
-const MatchTab = ({ follows }: { follows: any[] }) => {
+const MatchTab = ({ follows, onSelectRepo }: { follows: any[], onSelectRepo: (repo: Repository) => void }) => {
   const { user, profile } = useAuth();
   const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(true);
@@ -278,8 +278,12 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
     const repo = repos[currentIndex];
     if (!repo) return;
 
-    await firebaseService.logInteraction(repo, direction);
-    setInteractedIds(prev => new Set(prev).add(repo.id.toString()));
+    if (direction === 'open') {
+      onSelectRepo(repo);
+    } else {
+      await firebaseService.logInteraction(repo, direction);
+      setInteractedIds(prev => new Set(prev).add(repo.id.toString()));
+    }
 
     setCurrentIndex(prev => prev + 1);
   };
@@ -293,7 +297,7 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
 
   return (
     <div className="h-full flex flex-col items-center justify-center p-4 relative overflow-hidden pt-[env(safe-area-inset-top,1rem)]">
-      <div className="relative w-full max-w-md aspect-[3/4] mb-40">
+      <div className="relative w-full max-w-md aspect-[3/4] mb-48">
         <AnimatePresence>
            {repos.slice(currentIndex, currentIndex + 2).reverse().map((repo, idx) => (
              <RepoCard 
@@ -341,7 +345,7 @@ const MatchTab = ({ follows }: { follows: any[] }) => {
       </div>
 
       {/* Control Buttons and Help */}
-      <div className="absolute bottom-36 lg:bottom-12 flex flex-col items-center gap-6">
+      <div className="absolute bottom-44 lg:bottom-12 flex flex-col items-center gap-6">
         <div className="flex items-center gap-8">
           <button 
             onClick={() => handleSwipe('pass')}
@@ -1152,7 +1156,7 @@ function MainApp() {
                 exit={{ opacity: 0, y: -20 }} 
                 className="h-full"
               >
-                <MatchTab follows={githubFollows} />
+                <MatchTab follows={githubFollows} onSelectRepo={setSelectedRepo} />
               </motion.div>
             )}
             {activeTab === 'discover' && (

@@ -30,7 +30,7 @@ export interface Repository {
   commit_count?: number;
 }
 
-export type InteractionType = 'like' | 'pass' | 'superlike';
+export type InteractionType = 'like' | 'pass' | 'superlike' | 'open';
 
 export interface Interaction {
   userId: string;

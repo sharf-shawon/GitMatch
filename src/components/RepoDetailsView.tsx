@@ -71,9 +71,9 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
 
   return (
     <motion.div 
-      initial={{ x: '100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '100%' }}
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       className="fixed inset-0 z-[110] bg-white dark:bg-slate-950 overflow-y-auto"
     >
