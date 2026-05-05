@@ -6,10 +6,3 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: always
-    environment:
-      - NODE_ENV=production
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=service"
-      - "coolify.name=gitmatch"
-      - "coolify.description=GitMatch PWA - Swipe to Discover Repos"
