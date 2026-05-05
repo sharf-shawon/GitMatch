@@ -7,3 +7,8 @@ dist
 README.md
 Dockerfile
 docker-compose.yml
+docker-compose.yaml
+.github
+.vscode
+*.log
+npm-debug.log*
