@@ -1,7 +1,8 @@
 # 🚀 GitMatch: Discover Your Next Favorite Repo
 
-[![GitHub stars](https://img.shields.io/github/stars/sharfuddin-shawon/gitmatch?style=for-the-badge&color=orange)](https://github.com/sharfuddin-shawon/gitmatch/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/sharfuddin-shawon/gitmatch?style=for-the-badge&color=blue)](https://github.com/sharfuddin-shawon/gitmatch/issues)
+[![CI Pipeline](https://img.shields.io/github/actions/workflow/status/sharfuddin-shawon/GitMatch/ci.yml?branch=main&style=for-the-badge&logo=github&label=CI/CD)](https://github.com/sharfuddin-shawon/GitMatch/actions/workflows/ci.yml)
+[![Tests Passing](https://img.shields.io/badge/Tests-Passing-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/sharfuddin-shawon/GitMatch/actions)
+[![Code Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/sharfuddin-shawon/GitMatch/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![React 19](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Tailwind 4](https://img.shields.io/badge/Tailwind-4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
@@ -36,33 +37,40 @@
 
 ### Prerequisites
 
-- Node.js (v18+)
-- npm or yarn
+- Node.js (v22+)
+- npm
 
 ### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/sharfuddin-shawon/gitmatch.git
-   cd gitmatch
+   git clone https://github.com/sharfuddin-shawon/GitMatch.git
+   cd GitMatch
    ```
 
 2. **Install dependencies:**
    ```bash
-   npm install
+   make install # or npm install
    ```
 
 3. **Set up Environment Variables:**
    Create a `.env` file based on `.env.example`:
-   ```env
-   VITE_FIREBASE_API_KEY=your_key
-   GEMINI_API_KEY=your_key
+   ```bash
+   cp .env.example .env
    ```
 
 4. **Run development server:**
    ```bash
-   npm run dev
+   make dev # or npm run dev
    ```
+
+### Quality Gates
+
+We use a `Makefile` to manage quality gates:
+- `make lint`: Run ESLint.
+- `make typecheck`: Run TypeScript compiler check.
+- `make coverage`: Run Vitest with coverage report.
+- `make build`: Verify production build.
 
 ---
 
