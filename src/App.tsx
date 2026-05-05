@@ -225,12 +225,22 @@ const MatchTab = ({
     }
   }, [loadingMore, user, page, follows, profile, interactedIds, repos]);
 
+  const followsRef = useRef(JSON.stringify(follows));
+
   const loadInitialRepos = useCallback(async () => {
     if (!user) return;
+    const followsStr = JSON.stringify(follows);
+    // Only reload if user or follows actually changed
+    if (repos.length > 0 && followsRef.current === followsStr) {
+      console.log("[MatchTab] Skipping initial load, follows unchanged");
+      return;
+    }
+    followsRef.current = followsStr;
+
     setLoading(true);
     console.log("[MatchTab] Loading initial repos for user:", user.uid);
     setPage(1);
-    
+
     try {
       // Helper function to prevent hanging on Firestore
       const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T | null> => {
@@ -317,7 +327,6 @@ const MatchTab = ({
         // Shuffle the pool for variety
         setRepos(filtered.sort(() => 0.5 - Math.random()));
       }
-
       setCurrentIndex(0);
     } catch (e) {
       console.error("[MatchTab] Error in loadInitialRepos:", e);
@@ -325,7 +334,7 @@ const MatchTab = ({
       console.log("[MatchTab] Finished initialization");
       setLoading(false);
     }
-  }, [user, follows, profile]);
+  }, [user, follows, profile, repos.length]);
 
   useEffect(() => {
     loadInitialRepos(); // eslint-disable-line react-hooks/set-state-in-effect
@@ -338,18 +347,32 @@ const MatchTab = ({
     }
   }, [currentIndex, repos.length, fetchMoreRepos]);
 
-  const handleSwipe = async (direction: InteractionType) => {
+  const handleSwipe = (direction: InteractionType) => {
     const repo = repos[currentIndex];
+    console.log(`[MatchTab] Swiping ${direction} on:`, repo?.name, "Index:", currentIndex);
     if (!repo) return;
 
     if (direction === "open") {
       onSelectRepo(repo);
-    } else {
-      await firebaseService.logInteraction(repo, direction);
-      setInteractedIds((prev) => new Set(prev).add(repo.id.toString()));
+      return;
     }
 
-    setCurrentIndex((prev) => prev + 1);
+    // Optimistically update the UI
+    setCurrentIndex((prev) => {
+      console.log("[MatchTab] Incrementing index from", prev, "to", prev + 1);
+      return prev + 1;
+    });
+
+    // Perform database operations in the background
+    firebaseService.logInteraction(repo, direction).catch((err) => {
+      console.error("[MatchTab] Failed to log interaction:", err);
+    });
+
+    setInteractedIds((prev) => {
+      const next = new Set(prev);
+      next.add(repo.id.toString());
+      return next;
+    });
   };
 
   if (loading)
@@ -365,19 +388,16 @@ const MatchTab = ({
   return (
     <div className="h-full flex flex-col items-center justify-center p-4 relative overflow-hidden pt-[env(safe-area-inset-top,1rem)]">
       <div className="relative w-full max-w-md aspect-[3/4] mb-48">
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {repos
             .slice(currentIndex, currentIndex + 2)
             .reverse()
-            .map((repo, idx) => (
+            .map((repo) => (
               <RepoCard
-                key={repo.id}
+                key={repo.id.toString()}
                 repo={repo}
                 onSwipe={handleSwipe}
-                isTop={
-                  idx === 1 ||
-                  repos.slice(currentIndex, currentIndex + 2).length === 1
-                }
+                isTop={repo.id === repos[currentIndex]?.id}
               />
             ))}
         </AnimatePresence>

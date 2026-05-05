@@ -10,7 +10,7 @@ interface RepoCardProps {
   isTop: boolean;
 }
 
-export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
+export const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onSwipe, isTop }) => {
   const [exitX, setExitX] = useState(0);
   const [exitY, setExitY] = useState(0);
 
@@ -119,4 +119,4 @@ export const RepoCard: React.FC<RepoCardProps> = ({ repo, onSwipe, isTop }) => {
       </div>
     </motion.div>
   );
-}
+});
