@@ -26,21 +26,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        let p = await firebaseService.getUserProfile(u.uid);
-        if (!p) {
-          const newProfile = {
-            userId: u.uid,
-            displayName: u.displayName,
-            email: u.email,
-            photoURL: u.photoURL,
-            interests: [],
-            preferredLanguages: [],
-            createdAt: Date.now(),
-          };
-          await firebaseService.saveUserProfile(newProfile);
-          p = await firebaseService.getUserProfile(u.uid);
+        try {
+          let p = await firebaseService.getUserProfile(u.uid);
+          if (!p) {
+            const newProfile = {
+              userId: u.uid,
+              displayName: u.displayName || '',
+              email: u.email || '',
+              photoURL: u.photoURL || '',
+              interests: [],
+              preferredLanguages: [],
+              createdAt: Date.now(),
+            };
+            await firebaseService.saveUserProfile(newProfile);
+            p = await firebaseService.getUserProfile(u.uid);
+          }
+          setProfile(p);
+        } catch (error) {
+          console.error("Firestore unreachable, logging in with local-only user:", error);
+          // Don't set profile, but allow user to proceed
         }
-        setProfile(p);
       } else {
         setProfile(null);
       }

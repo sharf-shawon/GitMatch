@@ -22,7 +22,7 @@ service cloud.firestore {
 
       allow get: if isSignedIn();
       allow list: if false; // Profiles are not listable globally
-      allow create: if isOwner(userId) && isEmailVerified() && isValidUser(request.resource.data);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
       allow update: if isOwner(userId) && isValidUser(request.resource.data);
     }
 

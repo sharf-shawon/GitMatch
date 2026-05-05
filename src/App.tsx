@@ -230,7 +230,17 @@ const MatchTab = ({
     setLoading(true);
     setPage(1);
     try {
-      const ids = await firebaseService.getAllInteractedRepoIds(user.uid);
+      // Add a timeout to prevent being stuck forever if firestore is hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Firestore operation timed out')), 8000)
+      );
+
+      const idsResult = await Promise.race([
+        firebaseService.getAllInteractedRepoIds(user.uid),
+        timeoutPromise
+      ]) as Set<string>;
+      
+      const ids = idsResult || new Set<string>();
       setInteractedIds(ids);
 
       const pool: Repository[] = [];
