@@ -1,12 +1,12 @@
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  orderBy,
   serverTimestamp,
   updateDoc,
   deleteDoc,
@@ -39,7 +39,7 @@ interface FirestoreErrorInfo {
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const message = error instanceof Error ? error.message : String(error);
-  
+
   // Specific hint for "offline" which often means configuration issues or environment blocks
   if (message.includes('offline')) {
     console.warn(`[Firestore] Operation ${operationType} on ${path} failed because the client is offline. This may be due to a misconfigured Firebase project ID, a blocked connection, or the Firestore service not being enabled for the project ${db.app.options.projectId}.`);
@@ -140,14 +140,14 @@ export const firebaseService = {
       );
       const snap = await getDocs(q);
       const ids = snap.docs.map(d => (d.data() as Interaction).repoId);
-      
+
       // Lazily update the profile so next time is fast
       if (ids.length > 0) {
         this.saveUserProfile({ interactedRepoIds: ids }).catch(err => {
           console.error("[Firestore] Lazy migration failed:", err);
         });
       }
-      
+
       return new Set(ids);
     } catch (e) {
       handleFirestoreError(e, OperationType.LIST, path);
@@ -240,7 +240,7 @@ export const firebaseService = {
   async createList(title: string, description: string, isPublic: boolean, repoIds: string[], repos: Repository[]) {
     const uid = auth.currentUser?.uid;
     if (!uid) return;
-    
+
     // Try to get username from profile for brackets
     let ownerName = auth.currentUser?.displayName || 'Anonymous';
     try {
@@ -352,7 +352,7 @@ export const firebaseService = {
       const followSnap = await getDocs(query(collection(db, 'follows'), where('followerId', '==', uid)));
       const listIds = followSnap.docs.map(d => d.data().listId);
       if (listIds.length === 0) return [];
-      
+
       // Batch get might be limited, but for a few is fine
       const lists: CuratedList[] = [];
       for (const id of listIds) {

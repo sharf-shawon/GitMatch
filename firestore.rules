@@ -14,7 +14,7 @@ service cloud.firestore {
     // User profiles
     match /users/{userId} {
       function isValidUser(data) {
-        return data.userId == userId 
+        return data.userId == userId
           && data.email is string
           && (data.interests is list || !data.keys().hasAll(['interests']))
           && (data.preferredLanguages is list || !data.keys().hasAll(['preferredLanguages']));

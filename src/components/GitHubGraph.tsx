@@ -17,7 +17,7 @@ export const GitHubGraph: React.FC<GitHubGraphProps> = ({ stats }) => {
 
   // Get max commits for scaling
   const maxWeeklyCommits = Math.max(...stats.map(s => s.total), 1);
-  
+
   // Last 52 weeks
   const displayStats = stats.slice(-52);
 

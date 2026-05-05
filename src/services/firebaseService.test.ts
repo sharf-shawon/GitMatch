@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { firebaseService } from './firebaseService';
 import { getDoc, getDocs, updateDoc, setDoc } from 'firebase/firestore';
+import { Repository } from '../types';
 
 // Mock Firebase Firestore
 vi.mock('firebase/firestore', () => ({
@@ -37,14 +38,14 @@ describe('firebaseService', () => {
         userId: 'test-user',
         interactedRepoIds: ['123', '456']
       };
-      
-      (getDoc as any).mockResolvedValue({
+
+      vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => mockProfile
-      });
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const ids = await firebaseService.getAllInteractedRepoIds('test-user');
-      
+
       expect(ids).toBeInstanceOf(Set);
       expect(ids.has('123')).toBe(true);
       expect(ids.has('456')).toBe(true);
@@ -52,19 +53,19 @@ describe('firebaseService', () => {
     });
 
     it('should fall back to legacy query and migrate if profile array missing', async () => {
-      (getDoc as any).mockResolvedValue({
+      vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => ({ userId: 'test-user' }) // No interactedRepoIds
-      });
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-      (getDocs as any).mockResolvedValue({
+      vi.mocked(getDocs).mockResolvedValue({
         docs: [
           { data: () => ({ repoId: '789' }) }
         ]
-      });
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const ids = await firebaseService.getAllInteractedRepoIds('test-user');
-      
+
       expect(ids.has('789')).toBe(true);
       expect(getDocs).toHaveBeenCalled(); // Legacy query used
       // Migration calls saveUserProfile
@@ -80,10 +81,10 @@ describe('firebaseService', () => {
 
   describe('logInteraction', () => {
     it('should call updateDoc with arrayUnion', async () => {
-      const mockRepo = { id: 101, name: 'test-repo' };
-      
-      await firebaseService.logInteraction(mockRepo as any, 'like');
-      
+      const mockRepo = { id: 101, name: 'test-repo' } as unknown as Repository;
+
+      await firebaseService.logInteraction(mockRepo, 'like');
+
       expect(setDoc).toHaveBeenCalledWith(
         expect.stringContaining('interactions'),
         expect.objectContaining({
@@ -103,7 +104,7 @@ describe('firebaseService', () => {
   describe('removeInteraction', () => {
     it('should call updateDoc with arrayRemove', async () => {
       await firebaseService.removeInteraction('202');
-      
+
       expect(updateDoc).toHaveBeenCalledWith(
         expect.stringContaining('users-test-user'),
         {

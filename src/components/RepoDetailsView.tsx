@@ -8,12 +8,12 @@ import { githubService } from '../services/githubService';
 import { Repository, CuratedList } from '../types';
 import { GitHubGraph } from './GitHubGraph';
 import { cn } from '../lib/utils';
-import { 
-  Star, 
-  GitFork, 
-  Eye, 
-  ExternalLink, 
-  User, 
+import {
+  Star,
+  GitFork,
+  Eye,
+  ExternalLink,
+  User,
   Info,
   Activity,
   Code2,
@@ -31,9 +31,9 @@ interface RepoDetailsViewProps {
   onMoveToList: (listId: string) => void;
 }
 
-export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({ 
-  repo, 
-  onClose, 
+export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
+  repo,
+  onClose,
   onViewProfile,
   myLists,
   onLike,
@@ -68,7 +68,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
   }, [repo]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
@@ -77,7 +77,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
     >
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 p-4 flex items-center justify-between">
-        <button 
+        <button
           onClick={onClose}
           className="p-2 -ml-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
@@ -87,9 +87,9 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
           <h2 className="text-sm font-black italic uppercase tracking-tighter truncate">{repo.name}</h2>
           <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{repo.owner.login}</p>
         </div>
-        <a 
-          href={repo.html_url} 
-          target="_blank" 
+        <a
+          href={repo.html_url}
+          target="_blank"
           rel="noreferrer"
           className="p-2 text-orange-500"
         >
@@ -157,7 +157,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
                   <h3 className="text-xl font-black italic uppercase group-hover:text-orange-500 transition-colors">{repo.owner.login}</h3>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => onViewProfile(repo.owner.login)}
                 className="p-4 bg-white/10 hover:bg-orange-500 text-white rounded-2xl transition-all shadow-xl relative z-10"
               >
@@ -202,7 +202,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
                     </>
                  ) : (
                     <>
-                     <button 
+                     <button
                        onClick={() => {
                          onLike();
                          setHasLiked(true);
@@ -214,18 +214,18 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
                      >
                        <Heart size={18} fill={hasLiked ? "currentColor" : "none"} /> {hasLiked ? 'LIKED' : 'LIKE REPO'}
                      </button>
-                     
+
                      <div className="flex-1 relative">
-                        <button 
+                        <button
                           onClick={() => setShowCollections(!showCollections)}
                           className="w-full py-4 bg-slate-900 text-white rounded-2xl flex items-center justify-center gap-2 font-black italic uppercase text-xs tracking-widest hover:opacity-90 transition-all"
                         >
                           <FolderPlus size={18} /> STASH
                         </button>
-                        
+
                         <AnimatePresence>
                           {showCollections && (
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, y: -10, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -255,8 +255,8 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
               </div>
 
               <div className="markdown-body !bg-transparent !text-inherit">
-                <Markdown 
-                  remarkPlugins={[remarkGfm]} 
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeRaw]}
                   components={{
                     img: ({ node: _node, ...props }) => {

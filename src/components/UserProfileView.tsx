@@ -4,12 +4,12 @@ import { githubService } from '../services/githubService';
 import { firebaseService } from '../services/firebaseService';
 import { Repository, GithubUser } from '../types';
 import { cn } from '../lib/utils';
-import { 
-  MapPin, 
-  Link as LinkIcon, 
-  Twitter, 
-  Users, 
-  BookOpen, 
+import {
+  MapPin,
+  Link as LinkIcon,
+  Twitter,
+  Users,
+  BookOpen,
   ChevronLeft,
   Github,
   Star,
@@ -69,7 +69,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onCl
   if (!user && !loading) return null;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
@@ -79,7 +79,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onCl
       <div className="max-w-4xl mx-auto pb-20">
         {/* Banner area */}
         <div className="h-48 bg-slate-900 relative">
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-6 left-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl backdrop-blur-md transition-all z-10"
           >
@@ -108,16 +108,16 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onCl
                         <h1 className="text-4xl font-black italic uppercase tracking-tighter">{user.name || user.login}</h1>
                         <div className="text-orange-500 font-black text-sm uppercase tracking-widest mt-1">@{user.login}</div>
                      </div>
-                     
+
                      {user.bio && <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{user.bio}</p>}
 
                      <div className="flex flex-wrap items-center gap-4">
-                        <button 
+                        <button
                           onClick={handleToggleFollow}
                           className={cn(
                             "px-6 py-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg",
-                            isFollowing 
-                              ? "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-500 hover:text-white" 
+                            isFollowing
+                              ? "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-500 hover:text-white"
                               : "bg-orange-500 text-white hover:opacity-90"
                           )}
                         >
@@ -166,7 +166,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onCl
                  )}
               </div>
            </div>
-           
+
            <div className="space-y-4">
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
                 <Users size={16} /> NETWORK
@@ -189,7 +189,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onCl
            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
               <Github size={16} /> RECENT WORK
            </div>
-           
+
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {loading ? (
                 [1,2,3,4].map(i => <div key={i} className="h-32 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 animate-pulse" />)
@@ -220,7 +220,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ username, onCl
            </div>
 
            {!loading && (
-             <a 
+             <a
                href={user.html_url}
                target="_blank"
                rel="noreferrer"

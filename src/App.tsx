@@ -244,7 +244,7 @@ const MatchTab = ({
     try {
       // Helper function to prevent hanging on Firestore
       const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T | null> => {
-        const timeoutPromise = new Promise<null>((resolve) => 
+        const timeoutPromise = new Promise<null>((resolve) =>
           setTimeout(() => {
             console.warn(`[MatchTab] Firestore operation timed out after ${timeoutMs}ms`);
             resolve(null);

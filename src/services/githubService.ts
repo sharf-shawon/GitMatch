@@ -17,7 +17,7 @@ export const githubService = {
 
     const response = await fetch(`${GITHUB_API_BASE}/search/repositories?q=${encodeURIComponent(q)}&sort=updated&order=desc&per_page=30&page=${page}`);
     if (!response.ok) throw new Error('Failed to fetch repos');
-    
+
     const data = await response.json();
     return data.items.map((item: Repository) => ({
       ...item,

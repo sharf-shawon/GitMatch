@@ -17,7 +17,7 @@ export const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onSwipe, is
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0, 200], [0.5, 1, 0.5]);
   const rotateTransform = useTransform(x, [-250, 250], [-35, 35]);
-  
+
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x > 140) {
       setExitX(1200);
@@ -105,7 +105,7 @@ export const RepoCard: React.FC<RepoCardProps> = React.memo(({ repo, onSwipe, is
             </div>
           </div>
 
-          <a 
+          <a
             href={repo.html_url}
             target="_blank"
             rel="noreferrer"
