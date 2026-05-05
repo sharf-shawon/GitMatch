@@ -1,10 +1,10 @@
 {
-  "projectId": "jonomot",
-  "appId": "1:532096917636:web:07d1a706bb75315de062d1",
-  "apiKey": "AIzaSyAEo9Aal7qqhJsR2TEgwA8--op_oYrkxTs",
-  "authDomain": "jonomot.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-31156f46-f5b1-49d1-a887-5f5aab56f31c",
-  "storageBucket": "jonomot.firebasestorage.app",
-  "messagingSenderId": "532096917636",
-  "measurementId": ""
+  "projectId": "gitmatch-55bb1",
+  "appId": "1:888967552179:web:05e1ab73b2d089ae01e4c6",
+  "apiKey": "AIzaSyDwGuGBayGJa8yVhorWUuqZPVwxVzplsfA",
+  "authDomain": "gitmatch-55bb1.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "gitmatch-55bb1.firebasestorage.app",
+  "messagingSenderId": "888967552179",
+  "measurementId": "G-P7MJLVD60N"
 }
