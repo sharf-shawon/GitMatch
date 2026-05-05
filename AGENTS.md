@@ -19,29 +19,37 @@ A Tinder-like GitHub repository discovery application built with React, Vite, Fi
 
 ## 3. Mandatory Development Lifecycle
 Every task MUST follow this cycle:
-1. **Triage**: Summarize requirements, scope, and risks.
-2. **Clarification**: Ask questions if requirements are ambiguous. Do not assume.
-3. **Planning**: Output an implementation plan before coding.
-4. **Implementation**: Code following existing patterns.
-5. **Testing**: Add unit/integration tests. Target 95% coverage for new logic.
-6. **Quality Gate**: Run `npm run lint`, `npm run typecheck`, `npm run test:coverage`.
-7. **Verification**: Confirm `npm run build` succeeds.
-8. **Delivery**: Provide a Conventional Commit message.
+1. **TRIAGE**: Summarize requirements, scope, and risks.
+2. **CLARIFY**: Ask questions for ambiguity/risk. No coding until critical clarity.
+3. **PLAN**: List files to change + tests to add/update + docs to sync + validation steps.
+4. **CODE**: Match existing patterns/architecture. Minimal focused changes.
+5. **TEST SYNC**: New tests for behavior changes. Update stale tests.
+6. **DOCS SYNC**: Update all impacted docs/examples/changelogs/comments.
+7. **VALIDATE**: Run `npm run lint`, `npm run typecheck`, `npm run test:coverage`.
+8. **REVIEW**: Self-review as senior engineer. Verify sync + DoD.
+9. **DELIVERY**: Provide a Conventional Commit message.
 
-## 4. Coding Standards
+## 4. Code/Test/Docs Sync Rule (Non-Negotiable)
+```
+Code changes → Tests + Docs must sync in same commit
+Task incomplete until: code works, tests pass, docs match reality
+Stale tests/docs = defects to fix before completion
+```
+
+## 5. Coding Standards
 - **TypeScript**: Strict mode enabled. Use explicit types; avoid `any`.
 - **Styling**: Use Tailwind utility classes. No external CSS files.
 - **Components**: Functional components only. Use `lucide-react` for icons.
 - **State Management**: React Context/Hooks + Firebase for persistent state.
 - **Error Handling**: Use the legacy `handleFirestoreError` pattern for DB operations.
 
-## 5. Testing Requirements
+## 6. Testing Requirements
 - **Coverage Goals**: 95% Line, 90% Branch.
 - **Mocking**: Use `msw` for network requests and `vi.mock` for Firebase/third-party SDKs.
 - **Edge Cases**: Always test nulls, empty states, network failures, and large payloads.
 - **No Bypassing**: Never merge code that fails existing tests or drops coverage below thresholds.
 
-## 6. CI/CD Operations
+## 7. CI/CD Operations
 - **GitHub Actions**: Automated pipeline for every Push and PR.
 - **Build Verification**: Mandatory before any release.
 - **Semantic Versioning**: Follow `major.minor.patch` via Conventional Commits.
