@@ -21,6 +21,6 @@
 4. `src/App.tsx`: Main application router and state manager.
 
 ## Next Steps
-- Implement `githubService.test.ts`.
-- Implement `firebaseService.test.ts`.
 - Implement component tests for UI.
+- Implement context tests for Auth.
+- Increase coverage for existing services.

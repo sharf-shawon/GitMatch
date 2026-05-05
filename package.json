@@ -21,7 +21,7 @@
   },
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "NODE_OPTIONS='--experimental-global-webcrypto' vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "eslint . --max-warnings 0",
@@ -71,7 +71,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
-    "jsdom": "^29.1.1",
+    "happy-dom": "^17.6.1",
     "msw": "^2.14.3",
     "prettier": "^3.8.3",
     "semantic-release": "^25.0.3",

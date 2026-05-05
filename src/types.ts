@@ -5,6 +5,7 @@ export interface UserProfile {
   photoURL: string | null;
   interests: string[];
   preferredLanguages: string[];
+  interactedRepoIds?: string[];
   createdAt: number;
 }
 

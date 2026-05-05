@@ -10,7 +10,9 @@ import {
   serverTimestamp,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { UserProfile, Interaction, Repository, InteractionType, CuratedList } from '../types';
@@ -96,6 +98,10 @@ export const firebaseService = {
         type,
         timestamp: Date.now(),
       });
+      // Also sync to user profile for faster loading
+      await updateDoc(doc(db, 'users', uid), {
+        interactedRepoIds: arrayUnion(repo.id.toString())
+      });
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, path);
     }
@@ -108,6 +114,10 @@ export const firebaseService = {
     const path = `interactions/${interactionId}`;
     try {
       await deleteDoc(doc(db, 'interactions', interactionId));
+      // Also sync to user profile
+      await updateDoc(doc(db, 'users', uid), {
+        interactedRepoIds: arrayRemove(repoId)
+      });
     } catch (e) {
       handleFirestoreError(e, OperationType.DELETE, path);
     }
@@ -116,12 +126,29 @@ export const firebaseService = {
   async getAllInteractedRepoIds(uid: string): Promise<Set<string>> {
     const path = 'interactions';
     try {
+      // 1. Try to get from profile first (new optimized way)
+      const profile = await this.getUserProfile(uid);
+      if (profile?.interactedRepoIds) {
+        return new Set(profile.interactedRepoIds);
+      }
+
+      // 2. Legacy fallback & migration
+      console.log(`[Firestore] Fetching all interactions for migration for user ${uid}...`);
       const q = query(
         collection(db, 'interactions'),
         where('userId', '==', uid)
       );
       const snap = await getDocs(q);
-      return new Set(snap.docs.map(d => (d.data() as Interaction).repoId));
+      const ids = snap.docs.map(d => (d.data() as Interaction).repoId);
+      
+      // Lazily update the profile so next time is fast
+      if (ids.length > 0) {
+        this.saveUserProfile({ interactedRepoIds: ids }).catch(err => {
+          console.error("[Firestore] Lazy migration failed:", err);
+        });
+      }
+      
+      return new Set(ids);
     } catch (e) {
       handleFirestoreError(e, OperationType.LIST, path);
     }

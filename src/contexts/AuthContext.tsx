@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 photoURL: u.photoURL || '',
                 interests: [],
                 preferredLanguages: [],
+                interactedRepoIds: [],
                 createdAt: Date.now(),
               };
               await firebaseService.saveUserProfile(newProfile);
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               photoURL: u.photoURL || '',
               interests: [],
               preferredLanguages: [],
+              interactedRepoIds: [],
               createdAt: Date.now()
             });
           }

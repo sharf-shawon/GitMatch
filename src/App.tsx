@@ -244,7 +244,7 @@ const MatchTab = ({
       };
 
       console.log("[MatchTab] Fetching interacted IDs...");
-      const idsResult = await withTimeout(firebaseService.getAllInteractedRepoIds(user.uid), 6000);
+      const idsResult = await withTimeout(firebaseService.getAllInteractedRepoIds(user.uid), 10000);
       const ids = idsResult || new Set<string>();
       setInteractedIds(ids);
 

@@ -24,16 +24,24 @@ export const auth = getAuth(app);
 // Validate Connection to Firestore
 async function testConnection() {
   if (typeof window === 'undefined') return;
+  const projectId = (firebaseConfig as any).projectId;
   try {
     // We use a dummy path to test connection
     await getDocFromServer(doc(db, '_connection_test_', 'ping'));
-    console.log("Firestore connection successful");
+    console.log(`[Firestore] Connection successful to project: ${projectId}`);
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Firestore Error: The client is offline or misconfigured. Please check your Firebase configuration.");
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('the client is offline')) {
+      console.error(`[Firestore Error] The client is offline or misconfigured. 
+Project ID: ${projectId}
+Error Details: ${message}
+Common causes:
+1. Firestore is not enabled for this project.
+2. The project ID is incorrect.
+3. Network/Firewall is blocking access to firestore.googleapis.com.`);
     } else {
       // Ignore permission errors during connection test if expected
-      console.log("Firestore connection test ping finished (may show permissions error which is expected for dummy paths)");
+      console.log(`[Firestore] Connection test ping finished for ${projectId} (Response: ${message})`);
     }
   }
 }
