@@ -40,7 +40,7 @@ export const RepoDetailsView: React.FC<RepoDetailsViewProps> = ({
   onMoveToList
 }) => {
   const [readme, setReadme] = useState('');
-  const [stats, setStats] = useState<{ day: string, count: number }[]>([]);
+  const [stats, setStats] = useState<{ week: number; total: number }[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCollections, setShowCollections] = useState(false);
