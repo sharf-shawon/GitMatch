@@ -37,7 +37,7 @@ interface FirestoreErrorInfo {
   }
 }
 
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
   const message = error instanceof Error ? error.message : String(error);
 
   // Specific hint for "offline" which often means configuration issues or environment blocks
@@ -82,7 +82,6 @@ export const firebaseService = {
     } catch (e) {
       handleFirestoreError(e, OperationType.GET, path);
     }
-    return null;
   },
 
   async logInteraction(repo: Repository, type: InteractionType) {
@@ -194,19 +193,23 @@ export const firebaseService = {
     if (!uid) return false;
     const docId = `${uid}_${username}`;
     const docRef = doc(db, 'githubFollows', docId);
-    const snap = await getDoc(docRef);
+    try {
+      const snap = await getDoc(docRef);
 
-    if (snap.exists()) {
-      await deleteDoc(docRef);
-      return false;
-    } else {
-      await setDoc(docRef, {
-        userId: uid,
-        username,
-        avatarUrl,
-        timestamp: serverTimestamp()
-      });
-      return true;
+      if (snap.exists()) {
+        await deleteDoc(docRef);
+        return false;
+      } else {
+        await setDoc(docRef, {
+          userId: uid,
+          username,
+          avatarUrl,
+          timestamp: serverTimestamp()
+        });
+        return true;
+      }
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `githubFollows/${docId}`);
     }
   },
 
@@ -233,8 +236,12 @@ export const firebaseService = {
     if (!uid) return false;
     const docId = `${uid}_${username}`;
     const docRef = doc(db, 'githubFollows', docId);
-    const snap = await getDoc(docRef);
-    return snap.exists();
+    try {
+      const snap = await getDoc(docRef);
+      return snap.exists();
+    } catch (e) {
+      handleFirestoreError(e, OperationType.GET, `githubFollows/${docId}`);
+    }
   },
 
   async createList(title: string, description: string, isPublic: boolean, repoIds: string[], repos: Repository[]) {
@@ -310,7 +317,6 @@ export const firebaseService = {
     } catch (e) {
       handleFirestoreError(e, OperationType.LIST, path);
     }
-    return [];
   },
 
   async getPublicLists(): Promise<CuratedList[]> {
@@ -326,7 +332,6 @@ export const firebaseService = {
     } catch (e) {
       handleFirestoreError(e, OperationType.LIST, path);
     }
-    return [];
   },
 
   async followList(listId: string) {
@@ -363,7 +368,6 @@ export const firebaseService = {
     } catch (e) {
       handleFirestoreError(e, OperationType.LIST, 'follows');
     }
-    return [];
   },
 
   listenUserInteractions(uid: string, type: 'liked' | 'passed', callback: (data: Interaction[]) => void) {

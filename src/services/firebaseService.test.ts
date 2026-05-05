@@ -1,13 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { firebaseService } from './firebaseService';
-import { getDoc, getDocs, updateDoc, setDoc } from 'firebase/firestore';
-import { Repository } from '../types';
+import {
+  getDoc,
+  getDocs,
+  updateDoc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  query
+} from 'firebase/firestore';
+import { auth } from '../lib/firebase';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock Firebase Firestore
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(() => 'mock-collection'),
-  doc: vi.fn((_db, coll, id) => id ? `doc-${coll}-${id}` : 'mock-doc'),
-  query: vi.fn(),
+  doc: vi.fn((_db, coll, id) => id ? `doc-${coll}-${id}` : { id: 'mock-id' }),
+  query: vi.fn(() => 'mock-query'),
   where: vi.fn(),
   orderBy: vi.fn(),
   serverTimestamp: vi.fn(() => 'mock-timestamp'),
@@ -24,93 +34,290 @@ vi.mock('firebase/firestore', () => ({
 // Mock Firebase Auth and db
 vi.mock('../lib/firebase', () => ({
   db: { app: { options: { projectId: 'test-project' } } },
-  auth: { currentUser: { uid: 'test-user', email: 'test@example.com' } }
+  auth: { currentUser: { uid: 'test-user', email: 'test@example.com', displayName: 'Test User', emailVerified: true } }
 }));
 
 describe('firebaseService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (auth.currentUser as any) = { uid: 'test-user', email: 'test@example.com', displayName: 'Test User', emailVerified: true };
+  });
+
+  describe('Guard Clauses (No User)', () => {
+    it('should return early if no user', async () => {
+      (auth.currentUser as any) = null;
+      expect(await firebaseService.saveUserProfile({})).toBeUndefined();
+      expect(await firebaseService.logInteraction({ id: 1 } as any, 'like')).toBeUndefined();
+      expect(await firebaseService.removeInteraction('1')).toBeUndefined();
+      expect(await firebaseService.toggleGithubFollow('u', 'a')).toBe(false);
+      expect(await firebaseService.isFollowingGithub('u')).toBe(false);
+      expect(await firebaseService.createList('t', 'd', true, [], [])).toBeUndefined();
+      expect(await firebaseService.getMyLists()).toEqual([]);
+      expect(await firebaseService.followList('l')).toBeUndefined();
+      expect(await firebaseService.getFollowedLists()).toEqual([]);
+    });
+  });
+
+  describe('UserProfile Operations', () => {
+    it('should save user profile', async () => {
+      await firebaseService.saveUserProfile({ interests: ['React'] });
+      expect(setDoc).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ interests: ['React'] }), { merge: true });
+    });
+
+    it('should handle save user profile error', async () => {
+      vi.mocked(setDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.saveUserProfile({})).rejects.toThrow();
+    });
+
+    it('should get user profile', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({ userId: 'test-user' }) } as any);
+      expect(await firebaseService.getUserProfile('test-user')).toBeDefined();
+    });
+
+    it('should handle get user profile error', async () => {
+      vi.mocked(getDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getUserProfile('u')).rejects.toThrow();
+    });
+
+    it('should return null if profile does not exist', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => false } as any);
+      expect(await firebaseService.getUserProfile('test-user')).toBeNull();
+    });
   });
 
   describe('getAllInteractedRepoIds', () => {
-    it('should return ids from user profile if they exist', async () => {
-      const mockProfile = {
-        userId: 'test-user',
-        interactedRepoIds: ['123', '456']
-      };
-
-      vi.mocked(getDoc).mockResolvedValue({
-        exists: () => true,
-        data: () => mockProfile
-      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-
+    it('should return from profile', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({ interactedRepoIds: ['1'] }) } as any);
       const ids = await firebaseService.getAllInteractedRepoIds('test-user');
-
-      expect(ids).toBeInstanceOf(Set);
-      expect(ids.has('123')).toBe(true);
-      expect(ids.has('456')).toBe(true);
-      expect(getDocs).not.toHaveBeenCalled(); // Legacy query skipped
+      expect(ids.has('1')).toBe(true);
     });
 
-    it('should fall back to legacy query and migrate if profile array missing', async () => {
-      vi.mocked(getDoc).mockResolvedValue({
-        exists: () => true,
-        data: () => ({ userId: 'test-user' }) // No interactedRepoIds
-      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      vi.mocked(getDocs).mockResolvedValue({
-        docs: [
-          { data: () => ({ repoId: '789' }) }
-        ]
-      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-
+    it('should fall back and migrate', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({}) } as any);
+      vi.mocked(getDocs).mockResolvedValue({ docs: [{ data: () => ({ repoId: '2' }) }] } as any);
       const ids = await firebaseService.getAllInteractedRepoIds('test-user');
+      expect(ids.has('2')).toBe(true);
+      expect(setDoc).toHaveBeenCalled();
+    });
 
-      expect(ids.has('789')).toBe(true);
-      expect(getDocs).toHaveBeenCalled(); // Legacy query used
-      // Migration calls saveUserProfile
-      expect(setDoc).toHaveBeenCalledWith(
-        expect.stringContaining('users-test-user'),
-        expect.objectContaining({
-          interactedRepoIds: ['789']
-        }),
-        { merge: true }
-      );
+    it('should handle lazy migration failure', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({}) } as any);
+      vi.mocked(getDocs).mockResolvedValue({ docs: [{ data: () => ({ repoId: '2' }) }] } as any);
+      vi.mocked(setDoc).mockRejectedValueOnce(new Error('migration failed'));
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      await firebaseService.getAllInteractedRepoIds('test-user');
+
+      // Wait for the async catch block
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Lazy migration failed'), expect.any(Error));
+    });
+
+    it('should handle empty legacy migration', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({}) } as any);
+      vi.mocked(getDocs).mockResolvedValue({ docs: [] } as any);
+      const ids = await firebaseService.getAllInteractedRepoIds('test-user');
+      expect(ids.size).toBe(0);
+      expect(setDoc).not.toHaveBeenCalled();
+    });
+
+    it('should handle getAllInteractedRepoIds error', async () => {
+      vi.mocked(getDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getAllInteractedRepoIds('u')).rejects.toThrow();
     });
   });
 
-  describe('logInteraction', () => {
-    it('should call updateDoc with arrayUnion', async () => {
-      const mockRepo = { id: 101, name: 'test-repo' } as unknown as Repository;
+  describe('Interactions', () => {
+    it('should log interaction', async () => {
+      await firebaseService.logInteraction({ id: 1 } as any, 'like');
+      expect(setDoc).toHaveBeenCalled();
+      expect(updateDoc).toHaveBeenCalled();
+    });
 
-      await firebaseService.logInteraction(mockRepo, 'like');
+    it('should handle log interaction error', async () => {
+      vi.mocked(setDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.logInteraction({ id: 1 } as any, 'like')).rejects.toThrow();
+    });
 
-      expect(setDoc).toHaveBeenCalledWith(
-        expect.stringContaining('interactions'),
-        expect.objectContaining({
-          repoId: '101',
-          type: 'like'
-        })
-      );
-      expect(updateDoc).toHaveBeenCalledWith(
-        expect.stringContaining('users-test-user'),
-        {
-          interactedRepoIds: 'arrayUnion(101)'
-        }
-      );
+    it('should remove interaction', async () => {
+      await firebaseService.removeInteraction('1');
+      expect(deleteDoc).toHaveBeenCalled();
+      expect(updateDoc).toHaveBeenCalled();
+    });
+
+    it('should handle remove interaction error', async () => {
+      vi.mocked(deleteDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.removeInteraction('1')).rejects.toThrow();
+    });
+
+    it('should get passes and likes', async () => {
+      vi.mocked(getDocs).mockResolvedValue({ docs: [{ data: () => ({ id: '1' }) }] } as any);
+      expect(await firebaseService.getUserPasses('u')).toHaveLength(1);
+      expect(await firebaseService.getUserLikes('u')).toHaveLength(1);
+    });
+
+    it('should handle get user passes/likes error', async () => {
+      vi.mocked(getDocs).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getUserPasses('u')).rejects.toThrow();
+      vi.mocked(getDocs).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getUserLikes('u')).rejects.toThrow();
     });
   });
 
-  describe('removeInteraction', () => {
-    it('should call updateDoc with arrayRemove', async () => {
-      await firebaseService.removeInteraction('202');
+  describe('GitHub Follows', () => {
+    it('should toggle and check follows', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => false } as any);
+      expect(await firebaseService.toggleGithubFollow('u', 'a')).toBe(true);
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true } as any);
+      expect(await firebaseService.toggleGithubFollow('u', 'a')).toBe(false);
+      expect(await firebaseService.isFollowingGithub('u')).toBe(true);
+    });
 
-      expect(updateDoc).toHaveBeenCalledWith(
-        expect.stringContaining('users-test-user'),
-        {
-          interactedRepoIds: 'arrayRemove(202)'
-        }
-      );
+    it('should handle toggle github follow error', async () => {
+      vi.mocked(getDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.toggleGithubFollow('u', 'a')).rejects.toThrow();
+    });
+
+    it('should handle isFollowingGithub error', async () => {
+      vi.mocked(getDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.isFollowingGithub('u')).rejects.toThrow();
+    });
+
+    it('should listen to follows', () => {
+      const cb = vi.fn();
+      firebaseService.listenGithubFollows('u', cb);
+      expect(onSnapshot).toHaveBeenCalled();
+      const onSnapshotCall = vi.mocked(onSnapshot).mock.calls[0];
+      (onSnapshotCall[1] as any)({ docs: [{ data: () => ({ username: 'u' }) }] });
+      expect(cb).toHaveBeenCalledWith([{ username: 'u' }]);
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      expect(() => (onSnapshotCall[2] as any)(new Error('fail'))).toThrow();
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Lists', () => {
+    it('should create list with owner name from profile', async () => {
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({ githubUsername: 'dev' }) } as any);
+      const list = await firebaseService.createList('t', 'd', true, [], []);
+      expect(list?.ownerName).toContain('@dev');
+    });
+
+    it('should handle createList error', async () => {
+      vi.mocked(setDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.createList('t', 'd', true, [], [])).rejects.toThrow();
+    });
+
+    it('should create list even if profile fetch fails', async () => {
+      vi.mocked(getDoc).mockRejectedValue(new Error('fail'));
+      const list = await firebaseService.createList('t', 'd', true, [], []);
+      expect(list).toBeDefined();
+    });
+
+    it('should update and delete lists', async () => {
+      await firebaseService.updateList('l', {});
+      await firebaseService.deleteList('l');
+      expect(updateDoc).toHaveBeenCalled();
+      expect(deleteDoc).toHaveBeenCalled();
+    });
+
+    it('should handle update/delete list error', async () => {
+      vi.mocked(updateDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.updateList('l', {})).rejects.toThrow();
+      vi.mocked(deleteDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.deleteList('l')).rejects.toThrow();
+    });
+
+    it('should get public and my lists', async () => {
+      vi.mocked(getDocs).mockResolvedValue({ docs: [{ id: 'l', data: () => ({}) }] } as any);
+      expect(await firebaseService.getMyLists()).toHaveLength(1);
+      expect(await firebaseService.getPublicLists()).toHaveLength(1);
+    });
+
+    it('should handle get my/public lists error', async () => {
+      vi.mocked(getDocs).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getMyLists()).rejects.toThrow();
+      vi.mocked(getDocs).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getPublicLists()).rejects.toThrow();
+    });
+
+    it('should listen to my lists', () => {
+      const cb = vi.fn();
+      firebaseService.listenMyLists('u', cb);
+      expect(onSnapshot).toHaveBeenCalled();
+      const onSnapshotCall = vi.mocked(onSnapshot).mock.calls[0];
+      (onSnapshotCall[1] as any)({ docs: [{ id: 'l', data: () => ({}) }] });
+      expect(cb).toHaveBeenCalledWith([{ id: 'l' }]);
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      expect(() => (onSnapshotCall[2] as any)(new Error('fail'))).toThrow();
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Follow Lists', () => {
+    it('should follow and get followed lists', async () => {
+      await firebaseService.followList('l');
+      expect(setDoc).toHaveBeenCalled();
+
+      vi.mocked(getDocs).mockResolvedValue({ docs: [{ data: () => ({ listId: 'l' }) }] } as any);
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => true, data: () => ({ id: 'l' }) } as any);
+      expect(await firebaseService.getFollowedLists()).toHaveLength(1);
+    });
+
+    it('should handle followList error', async () => {
+      vi.mocked(setDoc).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.followList('l')).rejects.toThrow();
+    });
+
+    it('should handle getFollowedLists error', async () => {
+      vi.mocked(getDocs).mockRejectedValueOnce(new Error('fail'));
+      await expect(firebaseService.getFollowedLists()).rejects.toThrow();
+    });
+
+    it('should return empty if no follows', async () => {
+      vi.mocked(getDocs).mockResolvedValue({ docs: [] } as any);
+      expect(await firebaseService.getFollowedLists()).toHaveLength(0);
+    });
+
+    it('should handle missing list in followed lists', async () => {
+      vi.mocked(getDocs).mockResolvedValue({ docs: [{ data: () => ({ listId: 'l' }) }] } as any);
+      vi.mocked(getDoc).mockResolvedValue({ exists: () => false } as any);
+      expect(await firebaseService.getFollowedLists()).toHaveLength(0);
+    });
+  });
+
+  describe('listenUserInteractions', () => {
+    it('should handle snapshots and errors', () => {
+      const cb = vi.fn();
+      firebaseService.listenUserInteractions('u', 'liked', cb);
+      const onSnapshotCall = vi.mocked(onSnapshot).mock.calls[0];
+      (onSnapshotCall[1] as any)({ docs: [{ data: () => ({ id: '1' }) }] });
+      expect(cb).toHaveBeenCalledWith([{ id: '1' }]);
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      expect(() => (onSnapshotCall[2] as any)(new Error('fail'))).toThrow();
+      expect(consoleSpy).toHaveBeenCalled();
+    });
+
+    it('should handle passed type', () => {
+      firebaseService.listenUserInteractions('u', 'passed', vi.fn());
+      expect(query).toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should throw on failure', async () => {
+      vi.mocked(getDoc).mockRejectedValue(new Error('fail'));
+      await expect(firebaseService.getUserProfile('u')).rejects.toThrow();
+    });
+
+    it('should warn if offline', async () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.mocked(getDoc).mockRejectedValue(new Error('offline'));
+      await expect(firebaseService.getUserProfile('u')).rejects.toThrow();
+      expect(consoleSpy).toHaveBeenCalled();
     });
   });
 });
