@@ -36,8 +36,15 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const message = error instanceof Error ? error.message : String(error);
+  
+  // Specific hint for "offline" which often means configuration issues or environment blocks
+  if (message.includes('offline')) {
+    console.warn(`[Firestore] Operation ${operationType} on ${path} failed because the client is offline. This may be due to a misconfigured Firebase project ID, a blocked connection, or the Firestore service not being enabled for the project ${db.app.options.projectId}.`);
+  }
+
   const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
+    error: message,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,

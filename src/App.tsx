@@ -228,18 +228,23 @@ const MatchTab = ({
   const loadInitialRepos = useCallback(async () => {
     if (!user) return;
     setLoading(true);
+    console.log("[MatchTab] Loading initial repos for user:", user.uid);
     setPage(1);
+    
     try {
-      // Add a timeout to prevent being stuck forever if firestore is hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Firestore operation timed out')), 8000)
-      );
+      // Helper function to prevent hanging on Firestore
+      const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T | null> => {
+        const timeoutPromise = new Promise<null>((resolve) => 
+          setTimeout(() => {
+            console.warn(`[MatchTab] Firestore operation timed out after ${timeoutMs}ms`);
+            resolve(null);
+          }, timeoutMs)
+        );
+        return Promise.race([promise, timeoutPromise]);
+      };
 
-      const idsResult = await Promise.race([
-        firebaseService.getAllInteractedRepoIds(user.uid),
-        timeoutPromise
-      ]) as Set<string>;
-      
+      console.log("[MatchTab] Fetching interacted IDs...");
+      const idsResult = await withTimeout(firebaseService.getAllInteractedRepoIds(user.uid), 6000);
       const ids = idsResult || new Set<string>();
       setInteractedIds(ids);
 
@@ -247,6 +252,7 @@ const MatchTab = ({
 
       // 1. Try Followed users first
       if (follows.length > 0) {
+        console.log("[MatchTab] Fetching repos from follows...");
         const randomFollows = follows
           .sort(() => 0.5 - Math.random())
           .slice(0, 3);
@@ -256,7 +262,7 @@ const MatchTab = ({
         pool.push(...followResults.flat());
       }
 
-      // 2. Try Preferred Languages (Pick 2 random ones if available)
+      // 2. Try Preferred Languages
       const langs = (
         profile?.preferredLanguages || [
           "typescript",
@@ -268,6 +274,7 @@ const MatchTab = ({
       ).sort(() => 0.5 - Math.random());
       const selectedLangs = langs.slice(0, 2);
 
+      console.log("[MatchTab] Fetching trending by languages:", selectedLangs);
       const langResults = await Promise.all(
         selectedLangs.map((l) => githubService.getTrendingRepos(l)),
       );
@@ -275,16 +282,19 @@ const MatchTab = ({
 
       // 3. Try Trending overall if still low
       if (pool.length < 20) {
+        console.log("[MatchTab] Fetching overall trending...");
         const trending = await githubService.getTrendingRepos();
         pool.push(...trending);
       }
 
       // 4. Seed with Liked Topics if they exist
-      const likes = await firebaseService.getUserLikes(user.uid);
-      if (likes.length > 0) {
+      console.log("[MatchTab] Fetching user likes for seeding...");
+      const likes = await withTimeout(firebaseService.getUserLikes(user.uid), 4000);
+      if (likes && likes.length > 0) {
         const recentLikes = likes.slice(0, 5);
         const randomLike =
           recentLikes[Math.floor(Math.random() * recentLikes.length)];
+        console.log("[MatchTab] Seeding with matches for:", randomLike.repoData.language);
         const topicMatches = await githubService.getTrendingRepos(
           randomLike.repoData.language || undefined,
         );
@@ -292,9 +302,11 @@ const MatchTab = ({
       }
 
       const filtered = pool.filter((r) => !ids.has(r.id.toString()));
+      console.log(`[MatchTab] Found ${filtered.length} unique repos in initial pool`);
 
       // If still empty, try one last desperation search
       if (filtered.length === 0) {
+        console.log("[MatchTab] Pool empty, trying desperation search...");
         const fallback = await githubService.getTrendingRepos(
           undefined,
           "stars:>1000",
@@ -308,8 +320,9 @@ const MatchTab = ({
 
       setCurrentIndex(0);
     } catch (e) {
-      console.error(e);
+      console.error("[MatchTab] Error in loadInitialRepos:", e);
     } finally {
+      console.log("[MatchTab] Finished initialization");
       setLoading(false);
     }
   }, [user, follows, profile]);

@@ -24,32 +24,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          let p = await firebaseService.getUserProfile(u.uid);
-          if (!p) {
-            const newProfile = {
+      try {
+        setUser(u);
+        if (u) {
+          try {
+            let p = await firebaseService.getUserProfile(u.uid);
+            if (!p) {
+              const newProfile = {
+                userId: u.uid,
+                displayName: u.displayName || '',
+                email: u.email || '',
+                photoURL: u.photoURL || '',
+                interests: [],
+                preferredLanguages: [],
+                createdAt: Date.now(),
+              };
+              await firebaseService.saveUserProfile(newProfile);
+              p = await firebaseService.getUserProfile(u.uid);
+            }
+            setProfile(p);
+          } catch (error) {
+            console.error("Firestore unreachable, logging in with local-only user:", error);
+            // Fallback: use basic user info as profile if firestore is down
+            setProfile({
               userId: u.uid,
-              displayName: u.displayName || '',
+              displayName: u.displayName || 'User',
               email: u.email || '',
               photoURL: u.photoURL || '',
               interests: [],
               preferredLanguages: [],
-              createdAt: Date.now(),
-            };
-            await firebaseService.saveUserProfile(newProfile);
-            p = await firebaseService.getUserProfile(u.uid);
+              createdAt: Date.now()
+            });
           }
-          setProfile(p);
-        } catch (error) {
-          console.error("Firestore unreachable, logging in with local-only user:", error);
-          // Don't set profile, but allow user to proceed
+        } else {
+          setProfile(null);
         }
-      } else {
-        setProfile(null);
+      } catch (authError) {
+        console.error("Auth state change error:", authError);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
   }, []);
 
@@ -57,6 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/unauthorized-domain') {
+        const domain = window.location.hostname;
+        alert(`Sign in failed: This domain (${domain}) is not authorized in your Firebase Console.\n\nPlease add "${domain}" to "Authorized domains" under Authentication > Settings in the Firebase Console.`);
+      }
       console.error("Sign in failed", error);
     }
   };
@@ -65,6 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await signInWithPopup(auth, githubProvider);
     } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/unauthorized-domain') {
+        const domain = window.location.hostname;
+        alert(`GitHub Sign in failed: This domain (${domain}) is not authorized in your Firebase Console.\n\nPlease add "${domain}" to "Authorized domains" under Authentication > Settings in the Firebase Console.`);
+      }
       console.error("GitHub Sign in failed", error);
     }
   };
