@@ -256,10 +256,10 @@ const MatchTab = ({
         const randomFollows = follows
           .sort(() => 0.5 - Math.random())
           .slice(0, 3);
-        const followResults = await Promise.all(
+        const followResults = await withTimeout(Promise.all(
           randomFollows.map((f) => githubService.getUserRepos(f.username)),
-        );
-        pool.push(...followResults.flat());
+        ), 10000);
+        if (followResults) pool.push(...followResults.flat());
       }
 
       // 2. Try Preferred Languages
@@ -275,16 +275,16 @@ const MatchTab = ({
       const selectedLangs = langs.slice(0, 2);
 
       console.log("[MatchTab] Fetching trending by languages:", selectedLangs);
-      const langResults = await Promise.all(
+      const langResults = await withTimeout(Promise.all(
         selectedLangs.map((l) => githubService.getTrendingRepos(l)),
-      );
-      pool.push(...langResults.flat());
+      ), 15000);
+      if (langResults) pool.push(...langResults.flat());
 
       // 3. Try Trending overall if still low
       if (pool.length < 20) {
         console.log("[MatchTab] Fetching overall trending...");
-        const trending = await githubService.getTrendingRepos();
-        pool.push(...trending);
+        const trending = await withTimeout(githubService.getTrendingRepos(), 10000);
+        if (trending) pool.push(...trending);
       }
 
       // 4. Seed with Liked Topics if they exist
@@ -295,10 +295,10 @@ const MatchTab = ({
         const randomLike =
           recentLikes[Math.floor(Math.random() * recentLikes.length)];
         console.log("[MatchTab] Seeding with matches for:", randomLike.repoData.language);
-        const topicMatches = await githubService.getTrendingRepos(
+        const topicMatches = await withTimeout(githubService.getTrendingRepos(
           randomLike.repoData.language || undefined,
-        );
-        pool.push(...topicMatches);
+        ), 8000);
+        if (topicMatches) pool.push(...topicMatches);
       }
 
       const filtered = pool.filter((r) => !ids.has(r.id.toString()));
@@ -307,11 +307,11 @@ const MatchTab = ({
       // If still empty, try one last desperation search
       if (filtered.length === 0) {
         console.log("[MatchTab] Pool empty, trying desperation search...");
-        const fallback = await githubService.getTrendingRepos(
+        const fallback = await withTimeout(githubService.getTrendingRepos(
           undefined,
           "stars:>1000",
-        );
-        const finalFiltered = fallback.filter((r) => !ids.has(r.id.toString()));
+        ), 10000);
+        const finalFiltered = (fallback || []).filter((r) => !ids.has(r.id.toString()));
         setRepos(finalFiltered);
       } else {
         // Shuffle the pool for variety
