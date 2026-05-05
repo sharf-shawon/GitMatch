@@ -25,7 +25,7 @@ describe('githubService', () => {
 
       const repos = await githubService.getTrendingRepos('typescript');
       
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('language:typescript'));
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('language%3Atypescript'));
       expect(repos).toHaveLength(1);
       expect(repos[0].name).toBe('repo1');
     });
